@@ -2,7 +2,7 @@
 <html lang="th">
 <head>
   <meta charset="UTF-8">
-  <title>Rama Schedule & Swap</title>
+  <title>MedRama Schedule 1.00</title>
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0">
   <link rel="icon" href="favicon.ico" type="image/x-icon">
   <!-- Flatpickr CSS -->
@@ -52,13 +52,16 @@
     </nav>
 
     <div class="container mb-5">
-      <!-- Tabs Navigation -->
+    <!-- Tabs Navigation -->
       <ul class="nav nav-pills nav-fill mb-4 bg-white rounded shadow-sm p-1">
         <li class="nav-item">
           <a class="nav-link active" id="tab-dashboard" data-bs-toggle="pill" href="#dashboard">ตารางของฉัน</a>
         </li>
         <li class="nav-item">
           <a class="nav-link" id="tab-search" data-bs-toggle="pill" href="#search">ค้นหาเวร</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" id="tab-consult" data-bs-toggle="pill" href="#consult">ปรึกษา Fellow</a> <!-- เพิ่มตรงนี้ -->
         </li>
         <li class="nav-item">
           <a class="nav-link" id="tab-swap" data-bs-toggle="pill" href="#swap">แลกเวร</a>
@@ -93,6 +96,26 @@
                 <input type="text" id="searchDateInput" class="form-control bg-white" placeholder="เลือกวันที่...">
                 <button class="btn btn-primary" id="btnSearchSchedule">ค้นหา</button>
               </div>
+
+    <!-- Consult Fellow Tab -->
+        <div class="tab-pane fade" id="consult">
+          <div class="card shadow-sm mb-3">
+            <div class="card-body">
+              <h5 class="card-title text-success"><i class="bi bi-telephone-fill me-2"></i>รายชื่อ Fellow รับปรึกษา</h5>
+              <div class="input-group mb-3 mt-3">
+                <input type="text" id="consultDateInput" class="form-control bg-white" placeholder="เลือกวันที่...">
+                <button class="btn btn-success" id="btnSearchConsult">ค้นหา</button>
+              </div>
+            </div>
+          </div>
+          
+          <div id="consultResultContainer" class="d-none">
+            <h6 class="text-muted fw-bold mb-2">ผลการค้นหาประจำวัน</h6>
+            <div class="list-group" id="consultListResult">
+              <!-- ข้อมูล Fellow จะถูกวาดตรงนี้ด้วย JS -->
+            </div>
+          </div>
+        </div>              
               
               <!-- Filter by Ward -->
               <div class="mb-3 d-none" id="filterWardContainer">
