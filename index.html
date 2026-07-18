@@ -5,27 +5,162 @@
   <title>Rama Schedule & Swap</title>
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0">
   
-  <!-- CSS Frameworks ภายนอก -->
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-  <link href="https://cdn.jsdelivr.net/npm/sweetalert2@11.7.3/dist/sweetalert2.min.css" rel="stylesheet">
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+  <!-- Flatpickr CSS -->
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
   <link rel="stylesheet" type="text/css" href="https://npmcdn.com/flatpickr/dist/themes/material_blue.css">
-
-  <!-- เรียกไฟล์ CSS ของเราเอง -->
+  
+  <!-- Bootstrap 5 CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+  
+  <!-- SweetAlert2 -->
+  <link href="https://cdn.jsdelivr.net/npm/sweetalert2@11.7.3/dist/sweetalert2.min.css" rel="stylesheet">
+  
+  <!-- เรียกใช้ไฟล์ CSS ของเรา -->
   <link rel="stylesheet" href="style.css">
 </head>
 <body class="bg-light">
 
-  <!-- โค้ด <div> หน้า Login หน้า Dashboard ของคุณทั้งหมด... -->
+  <!-- หน้าจอ Login (แสดงตอนเริ่มต้นถ้ายังไม่ผูกบัญชี) -->
+  <div id="loginSection" class="container vh-100 d-flex justify-content-center align-items-center d-none">
+    <div class="card shadow-sm p-4 w-100" style="max-width: 400px;">
+      <h3 class="text-center text-primary mb-4">RamaID Login</h3>
+      <div class="mb-3">
+        <label class="form-label">กรุณากรอก RamaID ของท่าน</label>
+        <input type="tel" 
+               id="inputRamaId" 
+               class="form-control form-control-lg text-center fw-bold letter-spacing-1" 
+               placeholder="รหัสบุคคล รามา" 
+               inputmode="numeric" 
+               pattern="[0-9]*" 
+               maxlength="6">
+      </div>
+      <button id="btnLogin" class="btn btn-primary w-100 btn-lg">เข้าสู่ระบบ</button>
+    </div>
+  </div>
 
-  <!-- JS Frameworks ภายนอก -->
+  <!-- หน้าจอ Main App -->
+  <div id="appSection" class="d-none">
+    <nav class="navbar navbar-dark bg-primary shadow-sm mb-4">
+      <div class="container d-flex justify-content-between align-items-center">
+        <div>
+          <span class="navbar-brand mb-0 h1">Rama Schedule</span>
+          <span id="displayUserName" class="text-white small d-block" style="font-size: 0.8rem;"></span>
+        </div>
+        <button id="btnLogout" class="btn btn-sm btn-outline-light"><i class="bi bi-box-arrow-right"></i> ออกจากระบบ</button>
+      </div>
+    </nav>
+
+    <div class="container mb-5">
+      <!-- Tabs Navigation -->
+      <ul class="nav nav-pills nav-fill mb-4 bg-white rounded shadow-sm p-1">
+        <li class="nav-item">
+          <a class="nav-link active" id="tab-dashboard" data-bs-toggle="pill" href="#dashboard">ตารางของฉัน</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" id="tab-search" data-bs-toggle="pill" href="#search">ค้นหาเวร</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" id="tab-swap" data-bs-toggle="pill" href="#swap">แลกเวร</a>
+        </li>
+      </ul>
+
+      <!-- Tabs Content -->
+      <div class="tab-content">
+        <!-- Dashboard Tab -->
+        <div class="tab-pane fade show active" id="dashboard">
+          <div class="card shadow-sm mb-3">
+            <div class="card-body">
+              <h5 class="card-title text-primary">In-time Rotation ปัจจุบัน</h5>
+              <p id="currRotationContent" class="text-muted">กำลังโหลดข้อมูล...</p>
+            </div>
+          </div>
+          <div class="card shadow-sm">
+            <div class="card-body">
+              <h5 class="card-title text-danger">เวรนอกเวลาของฉัน</h5>
+              <div id="extraShiftsContent">กำลังโหลดข้อมูล...</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Search Tab -->
+        <div class="tab-pane fade" id="search">
+          <div class="card shadow-sm mb-3">
+            <div class="card-body">
+              <h5 class="card-title text-primary">ค้นหาผู้ปฏิบัติงาน</h5>
+              <div class="input-group mb-3">
+                <!-- ปรับให้มีดีไซน์ที่รองรับ Flatpickr ได้สวยงาม -->
+                <input type="text" id="searchDateInput" class="form-control bg-white" placeholder="เลือกวันที่...">
+                <button class="btn btn-primary" id="btnSearchSchedule">ค้นหา</button>
+              </div>
+              
+              <!-- Filter by Ward -->
+              <div class="mb-3 d-none" id="filterWardContainer">
+                <select id="filterWardSelect" class="form-select">
+                  <option value="">-- แสดงทุกแผนก / สถานที่ --</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          <div id="searchResultsContainer" class="d-none">
+            <div class="card shadow-sm mb-3 border-start border-primary border-4">
+              <div class="card-header bg-white fw-bold text-primary">
+                🏥 ในเวลาราชการ <span id="searchRotBadge" class="badge bg-secondary ms-2"></span>
+              </div>
+              <ul class="list-group list-group-flush" id="searchInTimeResult"></ul>
+            </div>
+
+            <div class="card shadow-sm border-start border-danger border-4">
+              <div class="card-header bg-white fw-bold text-danger">
+                🌙 นอกเวลา (เวร)
+              </div>
+              <ul class="list-group list-group-flush" id="searchExtraTimeResult"></ul>
+            </div>
+          </div>
+        </div>
+
+        <!-- Swap Tab -->
+        <div class="tab-pane fade" id="swap">
+          <div class="card shadow-sm">
+            <div class="card-body">
+              <h5 class="card-title mb-3">ฟอร์มขอแลกเวรนอกเวลา</h5>
+              
+              <div class="mb-3">
+                <label class="form-label">วันที่คุณต้องการให้คนอื่นมาแทน (Date Requester)</label>
+                <input type="text" id="swapDateReq" class="form-control bg-white" placeholder="เลือกวันที่...">
+                <div id="dateBadgeContainer" class="mt-2"></div>
+              </div>
+
+              <div class="mb-3">
+                <label class="form-label">เลือกแพทย์ที่จะมาอยู่แทน (Target Person)</label>
+                <select id="swapTarget" class="form-select" disabled>
+                  <option value="">-- กรุณาเลือกวันที่ด้านบนก่อน --</option>
+                </select>
+                <small class="text-muted">* แสดงเฉพาะชั้นปีเดียวกัน และไม่ซ้ำซ้อนในวันดังกล่าว</small>
+              </div>
+
+              <div class="mb-4">
+                <label class="form-label">วันที่คุณจะไปอยู่คืน (Date Target) - <span class="text-muted">ถ้ามี</span></label>
+                <input type="text" id="swapDateTarget" class="form-control bg-white" placeholder="เลือกวันที่... (ถ้ามี)">
+              </div>
+
+              <button id="btnSubmitSwap" class="btn btn-warning w-100 fw-bold text-dark">ส่งคำขอแลกเวร</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Scripts Frameworks ภายนอก -->
+  <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.7.3/dist/sweetalert2.all.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
   <script src="https://npmcdn.com/flatpickr/dist/l10n/th.js"></script>
-
-  <!-- เรียกไฟล์ JS ของเราเอง (ใส่คำว่า defer เพื่อให้โหลดหน้าเว็บเสร็จก่อนแล้วค่อยรันสคริปต์) -->
-  <script src="script.js" defer></script>
+  
+  <!-- เรียกใช้ไฟล์ JavaScript ของเรา -->
+  <script src="script.js"></script>
 </body>
 </html>
