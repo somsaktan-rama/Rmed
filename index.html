@@ -2,7 +2,7 @@
 <html lang="th">
 <head>
   <meta charset="UTF-8">
-  <title>MedRama Schedule 1.00</title>
+  <title>MedRama Schedule 1.01</title>
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0">
   <link rel="icon" href="favicon.ico" type="image/x-icon">
   <!-- Flatpickr CSS -->
@@ -52,7 +52,7 @@
     </nav>
 
     <div class="container mb-5">
-    <!-- Tabs Navigation -->
+<!-- ================= TABS NAVIGATION ================= -->
       <ul class="nav nav-pills nav-fill mb-4 bg-white rounded shadow-sm p-1">
         <li class="nav-item">
           <a class="nav-link active" id="tab-dashboard" data-bs-toggle="pill" href="#dashboard">ตารางของฉัน</a>
@@ -61,16 +61,17 @@
           <a class="nav-link" id="tab-search" data-bs-toggle="pill" href="#search">ค้นหาเวร</a>
         </li>
         <li class="nav-item">
-          <a class="nav-link" id="tab-consult" data-bs-toggle="pill" href="#consult">ปรึกษา Fellow</a> <!-- เพิ่มตรงนี้ -->
+          <a class="nav-link" id="tab-consult" data-bs-toggle="pill" href="#consult">ปรึกษา Fellow</a>
         </li>
         <li class="nav-item">
           <a class="nav-link" id="tab-swap" data-bs-toggle="pill" href="#swap">แลกเวร</a>
         </li>
       </ul>
 
-      <!-- Tabs Content -->
+      <!-- ================= TABS CONTENT ================= -->
       <div class="tab-content">
-        <!-- Dashboard Tab -->
+        
+        <!-- 1. Dashboard Tab -->
         <div class="tab-pane fade show active" id="dashboard">
           <div class="card shadow-sm mb-3">
             <div class="card-body">
@@ -86,18 +87,39 @@
           </div>
         </div>
 
-        <!-- Search Tab -->
+        <!-- 2. Search Tab -->
         <div class="tab-pane fade" id="search">
           <div class="card shadow-sm mb-3">
             <div class="card-body">
               <h5 class="card-title text-primary">ค้นหาผู้ปฏิบัติงาน</h5>
               <div class="input-group mb-3">
-                <!-- ปรับให้มีดีไซน์ที่รองรับ Flatpickr ได้สวยงาม -->
                 <input type="text" id="searchDateInput" class="form-control bg-white" placeholder="เลือกวันที่...">
                 <button class="btn btn-primary" id="btnSearchSchedule">ค้นหา</button>
               </div>
+              <div class="mb-3 d-none" id="filterWardContainer">
+                <select id="filterWardSelect" class="form-select">
+                  <option value="">-- แสดงทุกแผนก / สถานที่ --</option>
+                </select>
+              </div>
+            </div>
+          </div>
+          <div id="searchResultsContainer" class="d-none">
+            <div class="card shadow-sm mb-3 border-start border-primary border-4">
+              <div class="card-header bg-white fw-bold text-primary">
+                🏥 ในเวลาราชการ <span id="searchRotBadge" class="badge bg-secondary ms-2"></span>
+              </div>
+              <ul class="list-group list-group-flush" id="searchInTimeResult"></ul>
+            </div>
+            <div class="card shadow-sm border-start border-danger border-4">
+              <div class="card-header bg-white fw-bold text-danger">
+                🌙 นอกเวลา (เวร)
+              </div>
+              <ul class="list-group list-group-flush" id="searchExtraTimeResult"></ul>
+            </div>
+          </div>
+        </div>
 
-    <!-- Consult Fellow Tab -->
+        <!-- 3. Consult Fellow Tab (เพิ่มใหม่ตรงนี้ให้อยู่ใน tab-content) -->
         <div class="tab-pane fade" id="consult">
           <div class="card shadow-sm mb-3">
             <div class="card-body">
@@ -108,53 +130,24 @@
               </div>
             </div>
           </div>
-          
           <div id="consultResultContainer" class="d-none">
             <h6 class="text-muted fw-bold mb-2">ผลการค้นหาประจำวัน</h6>
             <div class="list-group" id="consultListResult">
               <!-- ข้อมูล Fellow จะถูกวาดตรงนี้ด้วย JS -->
             </div>
           </div>
-        </div>              
-              
-              <!-- Filter by Ward -->
-              <div class="mb-3 d-none" id="filterWardContainer">
-                <select id="filterWardSelect" class="form-select">
-                  <option value="">-- แสดงทุกแผนก / สถานที่ --</option>
-                </select>
-              </div>
-            </div>
-          </div>
-
-          <div id="searchResultsContainer" class="d-none">
-            <div class="card shadow-sm mb-3 border-start border-primary border-4">
-              <div class="card-header bg-white fw-bold text-primary">
-                🏥 ในเวลาราชการ <span id="searchRotBadge" class="badge bg-secondary ms-2"></span>
-              </div>
-              <ul class="list-group list-group-flush" id="searchInTimeResult"></ul>
-            </div>
-
-            <div class="card shadow-sm border-start border-danger border-4">
-              <div class="card-header bg-white fw-bold text-danger">
-                🌙 นอกเวลา (เวร)
-              </div>
-              <ul class="list-group list-group-flush" id="searchExtraTimeResult"></ul>
-            </div>
-          </div>
         </div>
 
-        <!-- Swap Tab -->
+        <!-- 4. Swap Tab -->
         <div class="tab-pane fade" id="swap">
           <div class="card shadow-sm">
             <div class="card-body">
               <h5 class="card-title mb-3">ฟอร์มขอแลกเวรนอกเวลา</h5>
-              
               <div class="mb-3">
                 <label class="form-label">วันที่คุณต้องการให้คนอื่นมาแทน (Date Requester)</label>
                 <input type="text" id="swapDateReq" class="form-control bg-white" placeholder="เลือกวันที่...">
                 <div id="dateBadgeContainer" class="mt-2"></div>
               </div>
-
               <div class="mb-3">
                 <label class="form-label">เลือกแพทย์ที่จะมาอยู่แทน (Target Person)</label>
                 <select id="swapTarget" class="form-select" disabled>
@@ -162,17 +155,16 @@
                 </select>
                 <small class="text-muted">* แสดงเฉพาะชั้นปีเดียวกัน และไม่ซ้ำซ้อนในวันดังกล่าว</small>
               </div>
-
               <div class="mb-4">
                 <label class="form-label">วันที่คุณจะไปอยู่คืน (Date Target) - <span class="text-muted">ถ้ามี</span></label>
                 <input type="text" id="swapDateTarget" class="form-control bg-white" placeholder="เลือกวันที่... (ถ้ามี)">
               </div>
-
               <button id="btnSubmitSwap" class="btn btn-warning w-100 fw-bold text-dark">ส่งคำขอแลกเวร</button>
             </div>
           </div>
         </div>
-      </div>
+
+      </div> <!-- ปิดแท็ก tab-content -->
     </div>
   </div>
 
