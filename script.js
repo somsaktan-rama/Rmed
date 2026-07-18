@@ -1,7 +1,8 @@
-  // ตัวแปรควบคุมโหมด
-  let currentUser = null;
+// URL ของ Google Apps Script ที่ Deploy เป็น Web App ไว้
+const SCRIPT_URL = "https://script.google.com/macros/s/AKfycby9rr4XSJumuMI6FMVia2Boh_bqtY14uzNSKpkn4iw7k43kL6KBl8Bu4kcNOcJdxGAR/exec"; 
+let currentUser = null;
 
-  // ฟังก์ชันเริ่มต้นทำงานเมื่อโหลดหน้าเว็บเสร็จ
+// ฟังก์ชันเริ่มต้นทำงานเมื่อโหลดหน้าเว็บเสร็จ
   window.onload = function() {
     checkLocalLogin();
   };
