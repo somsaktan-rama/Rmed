@@ -130,7 +130,10 @@ function loadDashboard() {
   let rId = currentUser.RamaID || currentUser.ramaid;
 
   // ใช้ fetch() แทน google.script.run
-  fetch(`${SCRIPT_URL}?action=dashboard&ramaId=${rId}`)
+  fetch(`${SCRIPT_URL}?action=dashboard&ramaId=${rId}`, {
+  method: 'GET',
+  redirect: 'follow'
+  })
     .then(response => response.json())
     .then(res => {
       if(res.status !== "success") throw new Error(res.message || "ดึงข้อมูลล้มเหลว");
@@ -200,7 +203,10 @@ document.getElementById('btnSearchSchedule').addEventListener('click', () => {
 
   Swal.fire({ title: 'กำลังค้นหาข้อมูล...', allowOutsideClick: false, didOpen: () => { Swal.showLoading() }});
 
-  fetch(`${SCRIPT_URL}?action=search&date=${searchDate}`)
+  fetch(`${SCRIPT_URL}?action=search&date=${searchDate}`, {
+  method: 'GET',
+  redirect: 'follow'
+  })
     .then(response => response.json())
     .then(res => {
       if(res.status !== "success") throw new Error(res.message);
