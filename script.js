@@ -116,6 +116,7 @@ function initDatePicker() {
   };
 
   flatpickr("#searchDateInput", { ...flatpickrConfig, defaultDate: "today" });
+  flatpickr("#consultDateInput", { ...flatpickrConfig, defaultDate: "today" });
   flatpickr("#swapDateReq", { ...flatpickrConfig });
   flatpickr("#swapDateTarget", { ...flatpickrConfig });
 }
@@ -284,3 +285,63 @@ function groupBy(array, key) {
     return result;
   }, {});
 }
+
+// =====================================
+// 5. CONSULT FELLOW LOGIC
+// =====================================
+document.getElementById('btnSearchConsult').addEventListener('click', () => {
+  const searchDate = document.getElementById('consultDateInput').value;
+  if (!searchDate) return Swal.fire('แจ้งเตือน', 'กรุณาเลือกวันที่ต้องการค้นหา', 'warning');
+
+  Swal.fire({ title: 'กำลังค้นหาข้อมูล...', allowOutsideClick: false, didOpen: () => { Swal.showLoading() }});
+
+  fetch(`${SCRIPT_URL}?action=consult&date=${searchDate}`, {
+    method: 'GET',
+    redirect: 'follow'
+  })
+    .then(response => response.json())
+    .then(res => {
+      if(res.status !== "success") throw new Error(res.message);
+      
+      Swal.close();
+      const consultData = res.data;
+      const resultContainer = document.getElementById('consultResultContainer');
+      const listEl = document.getElementById('consultListResult');
+      
+      resultContainer.classList.remove('d-none');
+      listEl.innerHTML = ''; // เคลียร์ของเก่า
+
+      if (consultData.length === 0) {
+        listEl.innerHTML = '<div class="alert alert-light border text-center text-muted">ไม่พบข้อมูล Fellow รับปรึกษาในวันนี้</div>';
+      } else {
+        // จัดกลุ่มตามชื่อ Division (เผื่อมีการส่งข้อมูลสลับไปมา)
+        consultData.forEach(fellow => {
+          let btnHtml = "";
+          // เช็คว่ามีเบอร์โทรหรือไม่
+          if (fellow.mobile && fellow.mobile !== "ไม่พบเบอร์") {
+            // ใช้คำสั่ง href="tel:..." เพื่อให้มือถือกดแล้วโทรออกได้เลย
+            // ลบขีดกลางหรือช่องว่างออกจากเบอร์ก่อนใส่ในลิงก์ tel:
+            let cleanPhone = fellow.mobile.toString().replace(/[^0-9]/g, ''); 
+            btnHtml = `<a href="tel:${cleanPhone}" class="btn btn-success btn-sm rounded-pill shadow-sm px-3">
+                         <i class="bi bi-telephone-outbound me-1"></i> ${fellow.mobile}
+                       </a>`;
+          } else {
+            btnHtml = `<span class="badge bg-secondary text-light">ไม่พบเบอร์</span>`;
+          }
+
+          listEl.innerHTML += `
+            <div class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
+              <div>
+                <strong class="text-primary fs-6">${fellow.division}</strong><br>
+                <span class="text-dark"><i class="bi bi-person-badge text-secondary me-1"></i>${fellow.name}</span>
+              </div>
+              <div>
+                ${btnHtml}
+              </div>
+            </div>
+          `;
+        });
+      }
+    })
+    .catch(err => Swal.fire('ข้อผิดพลาด', err.message, 'error'));
+});
