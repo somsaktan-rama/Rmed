@@ -1,0 +1,21 @@
+  body {
+    background-color: #f4f6f9;
+    font-family: 'Sarabun', sans-serif;
+  }
+  .nav-pills .nav-link {
+    color: #6c757d;
+    font-weight: 500;
+  }
+  .nav-pills .nav-link.active {
+    background-color: #0d6efd;
+    color: white;
+  }
+  .badge-holiday {
+    background-color: #dc3545; /* สีแดง */
+  }
+  .badge-weekend {
+    background-color: #fd7e14; /* สีส้ม */
+  }
+  .badge-workday {
+    background-color: #198754; /* สีเขียว */
+  }
