@@ -51,7 +51,10 @@ function verifyRamaId(ramaId, showSuccessAlert) {
   if (showSuccessAlert) Swal.fire({ title: 'กำลังตรวจสอบ...', didOpen: () => { Swal.showLoading() }});
 
   // ใช้ fetch() แทน google.script.run
-  fetch(`${SCRIPT_URL}?action=login&ramaId=${ramaId}`)
+  fetch(`${SCRIPT_URL}?action=login&ramaId=${ramaId}`, { 
+  method: 'GET',
+  redirect: 'follow' // เพิ่มบรรทัดนี้เพื่อสั่งให้เบราว์เซอร์วิ่งตามการ Redirect ของ Google
+  })
     .then(response => response.json())
     .then(res => {
       if (res.status === "success" && res.data.success) {
