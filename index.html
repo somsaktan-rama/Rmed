@@ -2,7 +2,7 @@
 <html lang="th">
 <head>
   <meta charset="UTF-8">
-  <title>MedRama Schedule 1.06</title>
+  <title>MedRama Schedule 1.07</title>
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0">
   <link rel="icon" href="favicon.ico" type="image/x-icon">
   <!-- Flatpickr CSS -->
@@ -73,19 +73,18 @@
       </ul>
 
       <!-- ================= TABS CONTENT ================= -->
+    <!-- Tabs Content -->
       <div class="tab-content">
-      <!-- Overview / สรุปประจำวัน Tab -->
+
+        <!-- 1. Overview Tab (แก้ปัญหาลืมปิด Div แล้ว) -->
         <div class="tab-pane fade show active" id="overview">
           <div class="card shadow-sm mb-3">
             <div class="card-body">
               <h5 class="card-title text-info"><i class="bi bi-clipboard-data-fill me-2"></i>สรุปการปฏิบัติงานรวม</h5>
-              
               <div class="input-group mb-3 mt-3">
                 <input type="text" id="overviewDateInput" class="form-control bg-white" placeholder="เลือกวันที่...">
                 <button class="btn btn-info text-white fw-bold" id="btnSearchOverview">ดูสรุปข้อมูล</button>
               </div>
-
-              <!-- เพิ่ม Filter Dropdown ตรงนี้ -->
               <div class="mb-2 d-none" id="overviewFilterContainer">
                 <div class="input-group">
                   <span class="input-group-text bg-light border-end-0"><i class="bi bi-funnel text-muted"></i></span>
@@ -94,46 +93,25 @@
                   </select>
                 </div>
               </div>
-
             </div>
           </div>
-          
-          <!-- ... โค้ดผลลัพธ์ overviewResultContainer ยังเหมือนเดิม ... -->
-
-         <div id="overviewResultContainer" class="d-none">
-            
-            <!-- 1. In Time Section (ปฏิบัติงานในเวลา อยู่บนสุด) -->
+          <div id="overviewResultContainer" class="d-none">
             <div class="card shadow-sm mb-3 border-start border-primary border-4">
-              <div class="card-header bg-white fw-bold text-primary">
-                <i class="bi bi-sun-fill me-1"></i> ปฏิบัติงานในเวลา
-              </div>
-              <div class="card-body p-0">
-                <ul class="list-group list-group-flush" id="overviewInTimeResult"></ul>
-              </div>
+              <div class="card-header bg-white fw-bold text-primary"><i class="bi bi-sun-fill me-1"></i> ปฏิบัติงานในเวลา</div>
+              <div class="card-body p-0"><ul class="list-group list-group-flush" id="overviewInTimeResult"></ul></div>
             </div>
-
-            <!-- 2. Extra Time Section (เวรนอกเวลา อยู่ตรงกลาง) -->
             <div class="card shadow-sm mb-3 border-start border-danger border-4">
-              <div class="card-header bg-white fw-bold text-danger">
-                <i class="bi bi-moon-stars-fill me-1"></i> เวรนอกเวลา
-              </div>
+              <div class="card-header bg-white fw-bold text-danger"><i class="bi bi-moon-stars-fill me-1"></i> เวรนอกเวลา</div>
               <ul class="list-group list-group-flush" id="overviewExtraResult"></ul>
             </div>
-
-            <!-- 3. Fellow Consult Section (Fellow รับปรึกษา อยู่ล่างสุด) -->
             <div class="card shadow-sm border-start border-success border-4">
-              <div class="card-header bg-white fw-bold text-success">
-                <i class="bi bi-telephone-fill me-1"></i> Fellow รับปรึกษา
-              </div>
+              <div class="card-header bg-white fw-bold text-success"><i class="bi bi-telephone-fill me-1"></i> Fellow รับปรึกษา</div>
               <ul class="list-group list-group-flush" id="overviewConsultResult"></ul>
             </div>
-
-          </div>
-          
           </div>
         </div>
-        
-        <!-- 1. Dashboard Tab -->
+
+        <!-- 2. Dashboard Tab -->
         <div class="tab-pane fade" id="dashboard">
           <div class="card shadow-sm mb-3">
             <div class="card-body">
@@ -149,39 +127,33 @@
           </div>
         </div>
 
-        <!-- 2. Search Tab -->
+        <!-- 3. Search Tab -->
         <div class="tab-pane fade" id="search">
           <div class="card shadow-sm mb-3">
             <div class="card-body">
               <h5 class="card-title text-primary">ค้นหาผู้ปฏิบัติงาน</h5>
-              <div class="input-group mb-3">
+              <div class="input-group mb-3 mt-3">
                 <input type="text" id="searchDateInput" class="form-control bg-white" placeholder="เลือกวันที่...">
                 <button class="btn btn-primary" id="btnSearchSchedule">ค้นหา</button>
               </div>
               <div class="mb-3 d-none" id="filterWardContainer">
-                <select id="filterWardSelect" class="form-select">
-                  <option value="">-- แสดงทุกแผนก / สถานที่ --</option>
-                </select>
+                <select id="filterWardSelect" class="form-select"><option value="">-- แสดงทุกแผนก / สถานที่ --</option></select>
               </div>
             </div>
           </div>
           <div id="searchResultsContainer" class="d-none">
             <div class="card shadow-sm mb-3 border-start border-primary border-4">
-              <div class="card-header bg-white fw-bold text-primary">
-                🏥 ในเวลาราชการ <span id="searchRotBadge" class="badge bg-secondary ms-2"></span>
-              </div>
+              <div class="card-header bg-white fw-bold text-primary">🏥 ในเวลาราชการ <span id="searchRotBadge" class="badge bg-secondary ms-2"></span></div>
               <ul class="list-group list-group-flush" id="searchInTimeResult"></ul>
             </div>
             <div class="card shadow-sm border-start border-danger border-4">
-              <div class="card-header bg-white fw-bold text-danger">
-                🌙 นอกเวลา (เวร)
-              </div>
+              <div class="card-header bg-white fw-bold text-danger">🌙 นอกเวลา (เวร)</div>
               <ul class="list-group list-group-flush" id="searchExtraTimeResult"></ul>
             </div>
           </div>
         </div>
 
-        <!-- 3. Consult Fellow Tab (เพิ่มใหม่ตรงนี้ให้อยู่ใน tab-content) -->
+        <!-- 4. Consult Fellow Tab -->
         <div class="tab-pane fade" id="consult">
           <div class="card shadow-sm mb-3">
             <div class="card-body">
@@ -194,13 +166,11 @@
           </div>
           <div id="consultResultContainer" class="d-none">
             <h6 class="text-muted fw-bold mb-2">ผลการค้นหาประจำวัน</h6>
-            <div class="list-group" id="consultListResult">
-              <!-- ข้อมูล Fellow จะถูกวาดตรงนี้ด้วย JS -->
-            </div>
+            <div class="list-group" id="consultListResult"></div>
           </div>
         </div>
 
-        <!-- 4. Swap Tab -->
+        <!-- 5. Swap Tab -->
         <div class="tab-pane fade" id="swap">
           <div class="card shadow-sm">
             <div class="card-body">
@@ -212,9 +182,7 @@
               </div>
               <div class="mb-3">
                 <label class="form-label">เลือกแพทย์ที่จะมาอยู่แทน (Target Person)</label>
-                <select id="swapTarget" class="form-select" disabled>
-                  <option value="">-- กรุณาเลือกวันที่ด้านบนก่อน --</option>
-                </select>
+                <select id="swapTarget" class="form-select" disabled><option value="">-- กรุณาเลือกวันที่ด้านบนก่อน --</option></select>
                 <small class="text-muted">* แสดงเฉพาะชั้นปีเดียวกัน และไม่ซ้ำซ้อนในวันดังกล่าว</small>
               </div>
               <div class="mb-4">
@@ -226,7 +194,8 @@
           </div>
         </div>
 
-      </div> <!-- ปิดแท็ก tab-content -->
+      </div> 
+      <!-- ปิดแท็ก tab-content อย่างสมบูรณ์ -->
     </div>
   </div>
 
