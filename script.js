@@ -88,40 +88,37 @@ function showAppMain() {
   
   let navName = currentUser.Name || currentUser.name || "ไม่ระบุชื่อ";
   let navRole = currentUser.RoleYear || currentUser.roleyear || "";
-  document.getElementById('displayUserName').innerText = `${navName} (${navRole})`;
+  let navPct = currentUser.PCT || currentUser.pct || ""; // ดึงเบอร์ของตัวเอง
+  
+  // สร้างปุ่มเบอร์ตัวเอง (ถ้ามี)
+  let pctHtml = (navPct && navPct.toString().trim() !== "") 
+      ? `<a href="tel:022011000,${navPct.toString().trim()}" class="badge bg-success text-decoration-none ms-2"><i class="bi bi-telephone-outbound"></i> ${navPct}</a>` 
+      : "";
+      
+  document.getElementById('displayUserName').innerHTML = `${navName} (${navRole}) ${pctHtml}`;
   
   // --- ระบบจัดการสิทธิ์ (Permission Control) ---
   let userRoleUpper = navRole.toUpperCase().trim();
   let allowedRoles = ["R1", "R2", "R3"];
   
   if (!allowedRoles.includes(userRoleUpper)) {
-    // ซ่อนแท็บที่ไม่เกี่ยวข้องสำหรับ Staff/Fellow/อื่นๆ
     document.getElementById('tab-dashboard').parentElement.classList.add('d-none');
     document.getElementById('tab-search').parentElement.classList.add('d-none');
     document.getElementById('tab-consult').parentElement.classList.add('d-none');
     document.getElementById('tab-swap').parentElement.classList.add('d-none');
-    
-    // บังคับให้แสดงหน้า Overview
     document.getElementById('tab-overview').click();
   } else {
-    // แสดงครบทุกแท็บสำหรับ R1, R2, R3
     document.getElementById('tab-dashboard').parentElement.classList.remove('d-none');
     document.getElementById('tab-search').parentElement.classList.remove('d-none');
     document.getElementById('tab-consult').parentElement.classList.remove('d-none');
     document.getElementById('tab-swap').parentElement.classList.remove('d-none');
   }
 
-  // เรียกใช้ปฏิทิน
   initDatePicker();
-  
-  // โหลดข้อมูล Dashboard (จะโหลดเงียบๆ หลังบ้าน)
   loadDashboard();
 
-  // กดปุ่มดึงข้อมูลหน้าสรุปประจำวันให้อัตโนมัติ
   const btnOverview = document.getElementById('btnSearchOverview');
-  if(btnOverview) {
-      btnOverview.click();
-  }
+  if(btnOverview) btnOverview.click();
 }
 
 // =====================================
@@ -295,7 +292,13 @@ function renderSearchResults(filterWard, inTimeData, extraData) {
         if (p.role) details.push(p.role);
         if (p.code) details.push(p.code);
         let detailBadge = details.length > 0 ? `<span class="badge bg-secondary ms-1">(${details.join(', ')})</span>` : '';
-        html += `<li class="list-group-item"><i class="bi bi-person-fill text-secondary me-2"></i>${p.name} ${detailBadge}</li>`; 
+        
+        let pctBtn = '';
+        if (p.pct && p.pct.toString().trim() !== '') {
+          pctBtn = `<a href="tel:022011000,${p.pct.toString().trim()}" class="btn btn-sm btn-outline-success ms-2 rounded-pill py-0 px-2" style="font-size: 0.8rem;"><i class="bi bi-telephone-outbound-fill"></i> ${p.pct.toString().trim()}</a>`;
+        }
+
+        html += `<li class="list-group-item d-flex align-items-center flex-wrap"><i class="bi bi-person-fill text-secondary me-2"></i>${p.name} ${detailBadge} ${pctBtn}</li>`; 
       });
     }
     inTimeUl.innerHTML = html;
@@ -314,7 +317,13 @@ function renderSearchResults(filterWard, inTimeData, extraData) {
         if (p.role) details.push(p.role);
         if (p.code) details.push(p.code);
         let detailBadge = details.length > 0 ? `<span class="badge bg-danger ms-1">(${details.join(', ')})</span>` : '';
-        html += `<li class="list-group-item"><i class="bi bi-moon-stars-fill text-warning me-2"></i>${p.name} ${detailBadge}</li>`; 
+        
+        let pctBtn = '';
+        if (p.pct && p.pct.toString().trim() !== '') {
+          pctBtn = `<a href="tel:022011000,${p.pct.toString().trim()}" class="btn btn-sm btn-outline-success ms-2 rounded-pill py-0 px-2" style="font-size: 0.8rem;"><i class="bi bi-telephone-outbound-fill"></i> ${p.pct.toString().trim()}</a>`;
+        }
+
+        html += `<li class="list-group-item d-flex align-items-center flex-wrap"><i class="bi bi-moon-stars-fill text-warning me-2"></i>${p.name} ${detailBadge} ${pctBtn}</li>`; 
       });
     }
     extraUl.innerHTML = html;
@@ -505,14 +514,18 @@ function renderOverviewExtra(extraData) {
   for (const [ward, people] of Object.entries(groupedExtra)) {
     html += `<li class="list-group-item bg-light text-danger fw-bold border-bottom">${ward}</li>`;
     people.forEach(p => {
-      // ประกอบข้อความ (RoleYear, Code)
       let details = [];
       if (p.role) details.push(p.role);
-      if (p.code) details.push(p.code); // ดึงรหัส Code
+      if (p.code) details.push(p.code);
       let detailBadge = details.length > 0 ? `<span class="badge bg-danger ms-1">(${details.join(', ')})</span>` : '';
       
-      html += `<li class="list-group-item ps-4">
-                 <i class="bi bi-moon-stars-fill text-warning me-2"></i>${p.name} ${detailBadge}
+      let pctBtn = '';
+      if (p.pct && p.pct.toString().trim() !== '') {
+        pctBtn = `<a href="tel:022011000,${p.pct.toString().trim()}" class="btn btn-sm btn-outline-success ms-2 rounded-pill py-0 px-2" style="font-size: 0.8rem;"><i class="bi bi-telephone-outbound-fill"></i> ${p.pct.toString().trim()}</a>`;
+      }
+      
+      html += `<li class="list-group-item ps-4 d-flex align-items-center flex-wrap">
+                 <i class="bi bi-moon-stars-fill text-warning me-2"></i>${p.name} ${detailBadge} ${pctBtn}
                </li>`;
     });
   }
@@ -535,17 +548,26 @@ function renderOverviewInTime(inTimeData) {
   sortedWards.forEach(ward => {
     html += `<li class="list-group-item bg-light text-primary fw-bold border-bottom">${ward}</li>`;
     
-    const sortedPeople = groupedInTime[ward].sort((a, b) => (a.role || "").localeCompare(b.role || ""));
+    // บังคับแปลงเป็น string ก่อนเรียงลำดับ ป้องกัน Error
+    const sortedPeople = groupedInTime[ward].sort((a, b) => {
+        let roleA = (a.role || "").toString();
+        let roleB = (b.role || "").toString();
+        return roleA.localeCompare(roleB);
+    });
     
     sortedPeople.forEach(p => {
-      // ประกอบข้อความ (RoleYear, Code)
       let details = [];
       if (p.role) details.push(p.role);
-      if (p.code) details.push(p.code); // ดึงรหัส Code
+      if (p.code) details.push(p.code);
       let detailBadge = details.length > 0 ? `<span class="badge bg-secondary ms-1">(${details.join(', ')})</span>` : '';
       
-      html += `<li class="list-group-item ps-4">
-                 <i class="bi bi-person-fill text-secondary me-2"></i>${p.name} ${detailBadge}
+      let pctBtn = '';
+      if (p.pct && p.pct.toString().trim() !== '') {
+        pctBtn = `<a href="tel:022011000,${p.pct.toString().trim()}" class="btn btn-sm btn-outline-success ms-2 rounded-pill py-0 px-2" style="font-size: 0.8rem;"><i class="bi bi-telephone-outbound-fill"></i> ${p.pct.toString().trim()}</a>`;
+      }
+      
+      html += `<li class="list-group-item ps-4 d-flex align-items-center flex-wrap">
+                 <i class="bi bi-person-fill text-secondary me-2"></i>${p.name} ${detailBadge} ${pctBtn}
                </li>`;
     });
   });
