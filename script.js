@@ -477,14 +477,25 @@ function populateOverviewFilter(data) {
 
 // ฟังก์ชันหลักสำหรับสั่งวาดข้อมูลทั้ง 3 ส่วน
 function renderOverviewAll(data, filterWard) {
-  // กรองข้อมูลตามที่เลือก (ถ้าไม่ได้เลือก ให้คืนค่าทั้งหมด)
-  const filteredConsults = filterWard ? data.consults.filter(c => c.division === filterWard) : data.consults;
-  const filteredExtra = filterWard ? data.extraTime.filter(e => e.ward === filterWard) : data.extraTime;
-  const filteredInTime = filterWard ? data.inTime.filter(i => i.ward === filterWard) : data.inTime;
+  if (!data) return;
 
-  renderOverviewConsults(filteredConsults);
+  // 1. ดึงข้อมูลให้ถูกชื่อ (รองรับความแตกต่างของชื่อตัวแปรที่ส่งมาจากหลังบ้าน)
+  const inTimeList = data.inTime || data.inTimeData || data.intime || [];
+  const extraList = data.extraTime || data.extraData || data.extratime || [];
+  const consultsList = data.consults || data.consultData || [];
+
+  // 2. กรองข้อมูล
+  const filteredInTime = filterWard ? inTimeList.filter(i => i.ward === filterWard) : inTimeList;
+  const filteredExtra = filterWard ? extraList.filter(e => e.ward === filterWard) : extraList;
+  const filteredConsults = filterWard ? consultsList.filter(c => c.division === filterWard) : consultsList;
+
+  // 3. สั่งวาดหน้าจอ
+  renderOverviewInTime(filteredInTime);
   renderOverviewExtra(filteredExtra);
-  (filteredInTime);
+  
+  if (typeof renderOverviewConsults === 'function') {
+     renderOverviewConsults(filteredConsults);
+  }
 }
 
 // 6.1 วาดข้อมูล Fellow รับปรึกษา
