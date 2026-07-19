@@ -295,18 +295,7 @@ function renderSearchResults(filterWard, inTimeData, extraData) {
         if (p.role) details.push(p.role);
         if (p.code) details.push(p.code);
         let detailBadge = details.length > 0 ? `<span class="badge bg-secondary ms-1">(${details.join(', ')})</span>` : '';
-        
-        // 🌟 สร้างปุ่ม PCT ถ้ามีข้อมูล 🌟
-        let pctBtn = '';
-        if (p.pct && p.pct.toString().trim() !== '') {
-          let pctNum = p.pct.toString().trim();
-          pctBtn = `<a href="tel:022011000,${pctNum}" class="btn btn-sm btn-outline-success ms-2 rounded-pill py-0 px-2" style="font-size: 0.8rem;"><i class="bi bi-telephone-outbound-fill"></i> ${pctNum}</a>`;
-        }
-
-        // จัด layout ให้ปุ่มเรียงสวยงามด้วย d-flex และ align-items-center
-        html += `<li class="list-group-item d-flex align-items-center flex-wrap">
-                   <i class="bi bi-person-fill text-secondary me-2"></i>${p.name} ${detailBadge} ${pctBtn}
-                 </li>`; 
+        html += `<li class="list-group-item"><i class="bi bi-person-fill text-secondary me-2"></i>${p.name} ${detailBadge}</li>`; 
       });
     }
     inTimeUl.innerHTML = html;
@@ -325,17 +314,7 @@ function renderSearchResults(filterWard, inTimeData, extraData) {
         if (p.role) details.push(p.role);
         if (p.code) details.push(p.code);
         let detailBadge = details.length > 0 ? `<span class="badge bg-danger ms-1">(${details.join(', ')})</span>` : '';
-        
-        // 🌟 สร้างปุ่ม PCT ถ้ามีข้อมูล 🌟
-        let pctBtn = '';
-        if (p.pct && p.pct.toString().trim() !== '') {
-          let pctNum = p.pct.toString().trim();
-          pctBtn = `<a href="tel:022011000,${pctNum}" class="btn btn-sm btn-outline-success ms-2 rounded-pill py-0 px-2" style="font-size: 0.8rem;"><i class="bi bi-telephone-outbound-fill"></i> ${pctNum}</a>`;
-        }
-
-        html += `<li class="list-group-item d-flex align-items-center flex-wrap">
-                   <i class="bi bi-moon-stars-fill text-warning me-2"></i>${p.name} ${detailBadge} ${pctBtn}
-                 </li>`; 
+        html += `<li class="list-group-item"><i class="bi bi-moon-stars-fill text-warning me-2"></i>${p.name} ${detailBadge}</li>`; 
       });
     }
     extraUl.innerHTML = html;
@@ -477,25 +456,14 @@ function populateOverviewFilter(data) {
 
 // ฟังก์ชันหลักสำหรับสั่งวาดข้อมูลทั้ง 3 ส่วน
 function renderOverviewAll(data, filterWard) {
-  if (!data) return;
+  // กรองข้อมูลตามที่เลือก (ถ้าไม่ได้เลือก ให้คืนค่าทั้งหมด)
+  const filteredConsults = filterWard ? data.consults.filter(c => c.division === filterWard) : data.consults;
+  const filteredExtra = filterWard ? data.extraTime.filter(e => e.ward === filterWard) : data.extraTime;
+  const filteredInTime = filterWard ? data.inTime.filter(i => i.ward === filterWard) : data.inTime;
 
-  // 1. ดึงข้อมูลให้ถูกชื่อ (รองรับความแตกต่างของชื่อตัวแปรที่ส่งมาจากหลังบ้าน)
-  const inTimeList = data.inTime || data.inTimeData || data.intime || [];
-  const extraList = data.extraTime || data.extraData || data.extratime || [];
-  const consultsList = data.consults || data.consultData || [];
-
-  // 2. กรองข้อมูล
-  const filteredInTime = filterWard ? inTimeList.filter(i => i.ward === filterWard) : inTimeList;
-  const filteredExtra = filterWard ? extraList.filter(e => e.ward === filterWard) : extraList;
-  const filteredConsults = filterWard ? consultsList.filter(c => c.division === filterWard) : consultsList;
-
-  // 3. สั่งวาดหน้าจอ
-  renderOverviewInTime(filteredInTime);
+  renderOverviewConsults(filteredConsults);
   renderOverviewExtra(filteredExtra);
-  
-  if (typeof renderOverviewConsults === 'function') {
-     renderOverviewConsults(filteredConsults);
-  }
+  renderOverviewInTime(filteredInTime);
 }
 
 // 6.1 วาดข้อมูล Fellow รับปรึกษา
@@ -543,67 +511,46 @@ function renderOverviewExtra(extraData) {
       if (p.code) details.push(p.code); // ดึงรหัส Code
       let detailBadge = details.length > 0 ? `<span class="badge bg-danger ms-1">(${details.join(', ')})</span>` : '';
       
-      // 🌟 สร้างปุ่ม PCT ถ้ามีข้อมูล 🌟
-      let pctBtn = '';
-      if (p.pct && p.pct.toString().trim() !== '') {
-        let pctNum = p.pct.toString().trim();
-        pctBtn = `<a href="tel:022011000,${pctNum}" class="btn btn-sm btn-outline-success ms-2 rounded-pill py-0 px-2" style="font-size: 0.8rem;"><i class="bi bi-telephone-outbound-fill"></i> ${pctNum}</a>`;
-      }
-      
-      html += `<li class="list-group-item ps-4 d-flex align-items-center flex-wrap">
-                 <i class="bi bi-moon-stars-fill text-warning me-2"></i>${p.name} ${detailBadge} ${pctBtn}
+      html += `<li class="list-group-item ps-4">
+                 <i class="bi bi-moon-stars-fill text-warning me-2"></i>${p.name} ${detailBadge}
                </li>`;
     });
   }
   container.innerHTML = html;
 }
 
-// 6.3 วาดข้อมูลปฏิบัติงานในเวลา (Failsafe Version - ป้องกันการค้าง)
+// 6.3 วาดข้อมูลปฏิบัติงานในเวลา
 function renderOverviewInTime(inTimeData) {
   const container = document.getElementById('overviewInTimeResult');
-  
-  // เช็คว่ามีข้อมูลส่งมาหรือไม่
-  if (!inTimeData || !Array.isArray(inTimeData) || inTimeData.length === 0) {
+  if (!inTimeData || inTimeData.length === 0) {
     container.innerHTML = '<li class="list-group-item text-muted text-center py-3">ไม่มีข้อมูลปฏิบัติงาน</li>';
     return;
   }
 
-  try {
-    const groupedInTime = groupBy(inTimeData, 'ward');
-    let html = '';
+  const groupedInTime = groupBy(inTimeData, 'ward');
+  let html = '';
+  
+  const sortedWards = Object.keys(groupedInTime).sort();
+  
+  sortedWards.forEach(ward => {
+    html += `<li class="list-group-item bg-light text-primary fw-bold border-bottom">${ward}</li>`;
     
-    // ใช้รูปแบบเดียวกับหน้าค้นหาที่ทำงานได้ปกติ (ไม่ใช้การ sort เพื่อป้องกัน Error)
-    for (const [wardName, people] of Object.entries(groupedInTime)) {
-      html += `<li class="list-group-item bg-light text-primary fw-bold border-bottom">${wardName}</li>`;
+    const sortedPeople = groupedInTime[ward].sort((a, b) => (a.role || "").localeCompare(b.role || ""));
+    
+    sortedPeople.forEach(p => {
+      // ประกอบข้อความ (RoleYear, Code)
+      let details = [];
+      if (p.role) details.push(p.role);
+      if (p.code) details.push(p.code); // ดึงรหัส Code
+      let detailBadge = details.length > 0 ? `<span class="badge bg-secondary ms-1">(${details.join(', ')})</span>` : '';
       
-      people.forEach(p => {
-        let details = [];
-        if (p.role) details.push(p.role);
-        if (p.code) details.push(p.code); 
-        let detailBadge = details.length > 0 ? `<span class="badge bg-secondary ms-1">(${details.join(', ')})</span>` : '';
-        
-        // ปุ่ม PCT
-        let pctBtn = '';
-        if (p.pct && p.pct.toString().trim() !== '') {
-          let pctNum = p.pct.toString().trim();
-          pctBtn = `<a href="tel:022011000,${pctNum}" class="btn btn-sm btn-outline-success ms-2 rounded-pill py-0 px-2" style="font-size: 0.8rem;"><i class="bi bi-telephone-outbound-fill"></i> ${pctNum}</a>`;
-        }
-        
-        html += `<li class="list-group-item ps-4 d-flex align-items-center flex-wrap">
-                   <i class="bi bi-person-fill text-secondary me-2"></i>${p.name || 'ไม่ระบุชื่อ'} ${detailBadge} ${pctBtn}
-                 </li>`;
-      });
-    }
-    
-    container.innerHTML = html;
-    
-  } catch (err) {
-    // ถ้ามี Error จะไม่แสดงหน้าขาว แต่จะบอกสาเหตุบนหน้าจอแทน
-    console.error("Error in renderOverviewInTime:", err);
-    container.innerHTML = `<li class="list-group-item text-danger py-3">
-                             <i class="bi bi-exclamation-triangle-fill me-2"></i>เกิดข้อผิดพลาด: ${err.message}
-                           </li>`;
-  }
+      html += `<li class="list-group-item ps-4">
+                 <i class="bi bi-person-fill text-secondary me-2"></i>${p.name} ${detailBadge}
+               </li>`;
+    });
+  });
+  
+  container.innerHTML = html;
 }
 
 // =====================================
@@ -749,5 +696,3 @@ window.respondSwap = function(reqId, status) {
     }
   });
 }
-
-
