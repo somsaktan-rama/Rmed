@@ -722,21 +722,24 @@ window.respondSwap = function(reqId, status) {
 // 8. DYNAMIC SWAP FORM (Step-by-Step Dropdowns)
 // ==========================================
 
-// ทริกเกอร์ให้โหลดเวรตัวเองทันทีที่กดแท็บ "แลกเวร"
+// เมื่อกดแท็บ "แลกเวร" ให้โหลดเวรตัวเองลงช่องที่ 1
 document.getElementById('tab-swap').addEventListener('click', () => {
-  loadPendingSwapsList(); // ของเดิม (Inbox)
+  loadPendingSwapsList(); // โหลด Inbox
   
-  // โหลดเวรของตัวเองลง Dropdown ช่องที่ 1
   let currentUid = currentUser.RamaID || currentUser.ramaid || currentUser.id;
   const selectReq = document.getElementById('swapDateReq');
+  selectReq.innerHTML = '<option value="">กำลังโหลดเวรของคุณ...</option>';
   
-  fetch(`${SCRIPT_URL}?action=get_swap_shifts&uid=${currentUid}`)
+  // 🌟 เพิ่ม { method: 'GET', redirect: 'follow' } เพื่อให้ทะลุ Google Redirect ได้
+  fetch(`${SCRIPT_URL}?action=get_swap_shifts&uid=${currentUid}`, {
+    method: 'GET',
+    redirect: 'follow'
+  })
     .then(res => res.json())
     .then(res => {
         selectReq.innerHTML = '<option value="">-- เลือกเวรของคุณ --</option>';
         if (res.data && res.data.length > 0) {
             res.data.forEach(shift => {
-                // แปลง ค.ศ. เป็น พ.ศ. สวยๆ
                 let parts = shift.display.split(' ')[0].split('/');
                 let thYear = parseInt(parts[2]) + 543;
                 let thDisplay = `${parts[0]}/${parts[1]}/${thYear} ${shift.display.substring(shift.display.indexOf('('))}`;
@@ -752,6 +755,10 @@ document.getElementById('tab-swap').addEventListener('click', () => {
         document.getElementById('swapTargetId').disabled = true;
         document.getElementById('swapDateTarget').innerHTML = '<option value="">-- กรุณาเลือกเพื่อนก่อน --</option>';
         document.getElementById('swapDateTarget').disabled = true;
+    })
+    .catch(err => {
+        console.error(err);
+        selectReq.innerHTML = '<option value="">เกิดข้อผิดพลาด ดึงข้อมูลไม่สำเร็จ</option>';
     });
 });
 
@@ -772,7 +779,11 @@ document.getElementById('swapDateReq').addEventListener('change', (e) => {
     selectTargetUser.disabled = false;
     selectTargetUser.innerHTML = '<option value="">กำลังค้นหาเพื่อนที่ว่าง...</option>';
     
-    fetch(`${SCRIPT_URL}?action=get_eligible_targets&uid=${currentUid}&req_date=${reqDate}`)
+    // 🌟 เพิ่ม { method: 'GET', redirect: 'follow' }
+    fetch(`${SCRIPT_URL}?action=get_eligible_targets&uid=${currentUid}&req_date=${reqDate}`, {
+      method: 'GET',
+      redirect: 'follow'
+    })
       .then(res => res.json())
       .then(res => {
           selectTargetUser.innerHTML = '<option value="">-- เลือกเพื่อนมาแทน --</option>';
@@ -783,7 +794,43 @@ document.getElementById('swapDateReq').addEventListener('change', (e) => {
           } else {
               selectTargetUser.innerHTML = '<option value="">(ไม่มีเพื่อนชั้นปีเดียวกันที่ว่างเลย)</option>';
           }
-      });
+      })
+      .catch(err => console.error(err));
+});
+
+// เมื่อเลือกช่องที่ 2 (ชื่อเพื่อน) -> ให้โหลดเวรของเพื่อนคนนั้นมาแสดงให้เลือกคืน (ช่องที่ 3)
+document.getElementById('swapTargetId').addEventListener('change', (e) => {
+    let targetUid = e.target.value;
+    const selectDateTarget = document.getElementById('swapDateTarget');
+    
+    if (!targetUid) {
+        selectDateTarget.innerHTML = '<option value="">-- กรุณาเลือกเพื่อนก่อน --</option>';
+        selectDateTarget.disabled = true;
+        return;
+    }
+
+    selectDateTarget.disabled = false;
+    selectDateTarget.innerHTML = '<option value="">กำลังโหลดเวรของเพื่อน...</option>';
+    
+    // 🌟 เพิ่ม { method: 'GET', redirect: 'follow' }
+    fetch(`${SCRIPT_URL}?action=get_swap_shifts&uid=${targetUid}`, {
+      method: 'GET',
+      redirect: 'follow'
+    })
+      .then(res => res.json())
+      .then(res => {
+          selectDateTarget.innerHTML = '<option value="">-- แลกให้เปล่า (ไม่คืนเวร) --</option>';
+          if (res.data && res.data.length > 0) {
+              res.data.forEach(shift => {
+                  let parts = shift.display.split(' ')[0].split('/');
+                  let thYear = parseInt(parts[2]) + 543;
+                  let thDisplay = `${parts[0]}/${parts[1]}/${thYear} ${shift.display.substring(shift.display.indexOf('('))}`;
+                  
+                  selectDateTarget.innerHTML += `<option value="${shift.dateValue}">${thDisplay}</option>`;
+              });
+          }
+      })
+      .catch(err => console.error(err));
 });
 
 // เมื่อเลือกช่องที่ 2 (ชื่อเพื่อน) -> ให้โหลดเวรของเพื่อนคนนั้นมาแสดงให้เลือกคืน (ช่องที่ 3)
