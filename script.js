@@ -547,48 +547,52 @@ function renderOverviewExtra(extraData) {
   container.innerHTML = html;
 }
 
-// 6.3 วาดข้อมูลปฏิบัติงานในเวลา (แก้ไขบั๊กการเรียงลำดับแล้ว)
+// 6.3 วาดข้อมูลปฏิบัติงานในเวลา (Failsafe Version - ป้องกันการค้าง)
 function renderOverviewInTime(inTimeData) {
   const container = document.getElementById('overviewInTimeResult');
-  if (!inTimeData || inTimeData.length === 0) {
+  
+  // เช็คว่ามีข้อมูลส่งมาหรือไม่
+  if (!inTimeData || !Array.isArray(inTimeData) || inTimeData.length === 0) {
     container.innerHTML = '<li class="list-group-item text-muted text-center py-3">ไม่มีข้อมูลปฏิบัติงาน</li>';
     return;
   }
 
-  const groupedInTime = groupBy(inTimeData, 'ward');
-  let html = '';
-  
-  const sortedWards = Object.keys(groupedInTime).sort();
-  
-  sortedWards.forEach(ward => {
-    html += `<li class="list-group-item bg-light text-primary fw-bold border-bottom">${ward}</li>`;
+  try {
+    const groupedInTime = groupBy(inTimeData, 'ward');
+    let html = '';
     
-    // 🌟 แก้ไขจุดนี้: เติม .toString() เพื่อป้องกัน Error กรณี Role เป็นตัวเลข 🌟
-    const sortedPeople = groupedInTime[ward].sort((a, b) => {
-        let roleA = (a.role || "").toString();
-        let roleB = (b.role || "").toString();
-        return roleA.localeCompare(roleB);
-    });
+    // ใช้รูปแบบเดียวกับหน้าค้นหาที่ทำงานได้ปกติ (ไม่ใช้การ sort เพื่อป้องกัน Error)
+    for (const [wardName, people] of Object.entries(groupedInTime)) {
+      html += `<li class="list-group-item bg-light text-primary fw-bold border-bottom">${wardName}</li>`;
+      
+      people.forEach(p => {
+        let details = [];
+        if (p.role) details.push(p.role);
+        if (p.code) details.push(p.code); 
+        let detailBadge = details.length > 0 ? `<span class="badge bg-secondary ms-1">(${details.join(', ')})</span>` : '';
+        
+        // ปุ่ม PCT
+        let pctBtn = '';
+        if (p.pct && p.pct.toString().trim() !== '') {
+          let pctNum = p.pct.toString().trim();
+          pctBtn = `<a href="tel:022011000,${pctNum}" class="btn btn-sm btn-outline-success ms-2 rounded-pill py-0 px-2" style="font-size: 0.8rem;"><i class="bi bi-telephone-outbound-fill"></i> ${pctNum}</a>`;
+        }
+        
+        html += `<li class="list-group-item ps-4 d-flex align-items-center flex-wrap">
+                   <i class="bi bi-person-fill text-secondary me-2"></i>${p.name || 'ไม่ระบุชื่อ'} ${detailBadge} ${pctBtn}
+                 </li>`;
+      });
+    }
     
-    sortedPeople.forEach(p => {
-      let details = [];
-      if (p.role) details.push(p.role);
-      if (p.code) details.push(p.code); 
-      let detailBadge = details.length > 0 ? `<span class="badge bg-secondary ms-1">(${details.join(', ')})</span>` : '';
-      
-      let pctBtn = '';
-      if (p.pct && p.pct.toString().trim() !== '') {
-        let pctNum = p.pct.toString().trim();
-        pctBtn = `<a href="tel:022011000,${pctNum}" class="btn btn-sm btn-outline-success ms-2 rounded-pill py-0 px-2" style="font-size: 0.8rem;"><i class="bi bi-telephone-outbound-fill"></i> ${pctNum}</a>`;
-      }
-      
-      html += `<li class="list-group-item ps-4 d-flex align-items-center flex-wrap">
-                 <i class="bi bi-person-fill text-secondary me-2"></i>${p.name} ${detailBadge} ${pctBtn}
-               </li>`;
-    });
-  });
-  
-  container.innerHTML = html;
+    container.innerHTML = html;
+    
+  } catch (err) {
+    // ถ้ามี Error จะไม่แสดงหน้าขาว แต่จะบอกสาเหตุบนหน้าจอแทน
+    console.error("Error in renderOverviewInTime:", err);
+    container.innerHTML = `<li class="list-group-item text-danger py-3">
+                             <i class="bi bi-exclamation-triangle-fill me-2"></i>เกิดข้อผิดพลาด: ${err.message}
+                           </li>`;
+  }
 }
 
 // =====================================
