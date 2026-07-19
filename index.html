@@ -2,7 +2,7 @@
 <html lang="th">
 <head>
   <meta charset="UTF-8">
-  <title>MedRama Schedule 1.03</title>
+  <title>MedRama Schedule 1.04</title>
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0">
   <link rel="icon" href="favicon.ico" type="image/x-icon">
   <!-- Flatpickr CSS -->
@@ -74,17 +74,31 @@
 
       <!-- ================= TABS CONTENT ================= -->
       <div class="tab-content">
-        <!-- Overview / สรุปประจำวัน Tab -->
+      <!-- Overview / สรุปประจำวัน Tab -->
         <div class="tab-pane fade show active" id="overview">
           <div class="card shadow-sm mb-3">
             <div class="card-body">
               <h5 class="card-title text-info"><i class="bi bi-clipboard-data-fill me-2"></i>สรุปการปฏิบัติงานรวม</h5>
+              
               <div class="input-group mb-3 mt-3">
                 <input type="text" id="overviewDateInput" class="form-control bg-white" placeholder="เลือกวันที่...">
                 <button class="btn btn-info text-white fw-bold" id="btnSearchOverview">ดูสรุปข้อมูล</button>
               </div>
+
+              <!-- เพิ่ม Filter Dropdown ตรงนี้ -->
+              <div class="mb-2 d-none" id="overviewFilterContainer">
+                <div class="input-group">
+                  <span class="input-group-text bg-light border-end-0"><i class="bi bi-funnel text-muted"></i></span>
+                  <select id="overviewWardFilter" class="form-select border-start-0 ps-1">
+                    <option value="">-- แสดงทุกแผนก --</option>
+                  </select>
+                </div>
+              </div>
+
             </div>
           </div>
+          
+          <!-- ... โค้ดผลลัพธ์ overviewResultContainer ยังเหมือนเดิม ... -->
 
           <div id="overviewResultContainer" class="d-none">
             <!-- 1. Fellow Consult Section -->
