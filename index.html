@@ -2,7 +2,7 @@
 <html lang="th">
 <head>
   <meta charset="UTF-8">
-  <title>MedRama Schedule 1.08</title>
+  <title>MedRama Schedule 1.09</title>
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0">
   <link rel="icon" href="favicon.ico" type="image/x-icon">
   <!-- Flatpickr CSS -->
@@ -170,10 +170,10 @@
           </div>
         </div>
 
-        <!-- 5. Swap Tab -->
+       <!-- 5. Swap Tab -->
         <div class="tab-pane fade" id="swap">
 
-          <!-- 🔥 เพิ่มกล่องนี้: สำหรับแสดงคำขอที่รอเราอนุมัติ 🔥 -->
+          <!-- 🔥 กล่อง Inbox คำขอแลกเวรที่ส่งถึงคุณ (คงเดิมไว้) 🔥 -->
           <div class="card shadow-sm mb-4 border-start border-info border-4" id="pendingSwapsContainer" style="display: none;">
             <div class="card-header bg-white fw-bold text-info">
               <i class="bi bi-bell-fill me-2"></i>คำขอแลกเวรที่ส่งถึงคุณ
@@ -184,25 +184,37 @@
               </ul>
             </div>
           </div>
-          <!-- 🔥 สิ้นสุดส่วนที่เพิ่ม 🔥 -->
                     
+          <!-- ฟอร์มขอแลกเวรแบบใหม่ (Step-by-Step) -->
           <div class="card shadow-sm">
             <div class="card-body">
               <h5 class="card-title mb-3">ฟอร์มขอแลกเวรนอกเวลา</h5>
+              
+              <!-- 1. เลือกเวรของตัวเองที่จะให้เพื่อนมาแทน -->
               <div class="mb-3">
-                <label class="form-label">วันที่คุณต้องการให้คนอื่นมาแทน (Date Requester)</label>
-                <input type="text" id="swapDateReq" class="form-control bg-white" placeholder="เลือกวันที่...">
-                <div id="dateBadgeContainer" class="mt-2"></div>
+                <label class="form-label text-danger fw-bold"><i class="bi bi-calendar-x"></i> 1. วันที่คุณต้องการแลก (เวรของคุณ)</label>
+                <select id="swapDateReq" class="form-select border-danger" required>
+                  <option value="">กำลังโหลดเวรของคุณ...</option>
+                </select>
               </div>
+
+              <!-- 2. เลือกเพื่อนที่ว่างในวันนั้น -->
               <div class="mb-3">
-                <label class="form-label">เลือกแพทย์ที่จะมาอยู่แทน (Target Person)</label>
-                <select id="swapTarget" class="form-select" disabled><option value="">-- กรุณาเลือกวันที่ด้านบนก่อน --</option></select>
-                <small class="text-muted">* แสดงเฉพาะชั้นปีเดียวกัน และไม่ซ้ำซ้อนในวันดังกล่าว</small>
+                <label class="form-label text-primary fw-bold"><i class="bi bi-person-plus-fill"></i> 2. เพื่อนที่จะมาอยู่แทน (เฉพาะคนที่ว่าง)</label>
+                <select id="swapTargetId" class="form-select border-primary" disabled required>
+                  <option value="">-- กรุณาเลือกวันที่ด้านบนก่อน --</option>
+                </select>
               </div>
+
+              <!-- 3. เลือกเวรของเพื่อนที่จะไปอยู่คืน -->
               <div class="mb-4">
-                <label class="form-label">วันที่คุณจะไปอยู่คืน (Date Target) - <span class="text-muted">ถ้ามี</span></label>
-                <input type="text" id="swapDateTarget" class="form-control bg-white" placeholder="เลือกวันที่... (ถ้ามี)">
+                <label class="form-label text-success fw-bold"><i class="bi bi-arrow-repeat"></i> 3. วันที่คุณจะไปคืนเวร (เวรของเพื่อน)</label>
+                <select id="swapDateTarget" class="form-select border-success" disabled>
+                  <option value="">-- กรุณาเลือกเพื่อนด้านบนก่อน --</option>
+                </select>
+                <div class="form-text">หากเป็นการแลกให้เปล่า (ไม่คืนเวร) ไม่ต้องเลือกช่องนี้</div>
               </div>
+              
               <button id="btnSubmitSwap" class="btn btn-warning w-100 fw-bold text-dark">ส่งคำขอแลกเวร</button>
             </div>
           </div>
