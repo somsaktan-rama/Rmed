@@ -115,6 +115,7 @@ function initDatePicker() {
     }
   };
 
+  flatpickr("#overviewDateInput", { ...flatpickrConfig, defaultDate: "today" });
   flatpickr("#searchDateInput", { ...flatpickrConfig, defaultDate: "today" });
   flatpickr("#consultDateInput", { ...flatpickrConfig, defaultDate: "today" });
   flatpickr("#swapDateReq", { ...flatpickrConfig });
@@ -345,3 +346,105 @@ document.getElementById('btnSearchConsult').addEventListener('click', () => {
     })
     .catch(err => Swal.fire('ข้อผิดพลาด', err.message, 'error'));
 });
+
+
+// =====================================
+// 6. OVERVIEW DASHBOARD LOGIC
+// =====================================
+document.getElementById('btnSearchOverview').addEventListener('click', () => {
+  const searchDate = document.getElementById('overviewDateInput').value;
+  if (!searchDate) return Swal.fire('แจ้งเตือน', 'กรุณาเลือกวันที่', 'warning');
+
+  Swal.fire({ title: 'กำลังโหลดสรุปประจำวัน...', allowOutsideClick: false, didOpen: () => { Swal.showLoading() }});
+
+  fetch(`${SCRIPT_URL}?action=daily_summary&date=${searchDate}`, {
+    method: 'GET',
+    redirect: 'follow'
+  })
+    .then(response => response.json())
+    .then(res => {
+      if(res.status !== "success") throw new Error(res.message);
+      
+      Swal.close();
+      const data = res.data;
+      document.getElementById('overviewResultContainer').classList.remove('d-none');
+
+      renderOverviewConsults(data.consults);
+      renderOverviewExtra(data.extraTime);
+      renderOverviewInTime(data.inTime);
+    })
+    .catch(err => Swal.fire('ข้อผิดพลาด', err.message, 'error'));
+});
+
+function renderOverviewConsults(consults) {
+  const container = document.getElementById('overviewConsultResult');
+  if (!consults || consults.length === 0) {
+    container.innerHTML = '<li class="list-group-item text-muted text-center py-3">ไม่มีข้อมูล Fellow รับปรึกษา</li>';
+    return;
+  }
+  let html = '';
+  consults.forEach(c => {
+    let cleanPhone = c.mobile.replace(/[^0-9]/g, '');
+    let phoneBtn = (cleanPhone && cleanPhone !== "ไม่พบเบอร์") 
+      ? `<a href="tel:${cleanPhone}" class="btn btn-outline-success btn-sm rounded-pill"><i class="bi bi-telephone"></i> ${c.mobile}</a>`
+      : `<span class="badge bg-secondary">ไม่มีเบอร์</span>`;
+
+    html += `
+      <li class="list-group-item d-flex justify-content-between align-items-center">
+        <div>
+          <strong class="text-success">${c.division}</strong><br>
+          <span class="text-dark small">${c.name}</span>
+        </div>
+        <div>${phoneBtn}</div>
+      </li>`;
+  });
+  container.innerHTML = html;
+}
+
+function renderOverviewExtra(extraData) {
+  const container = document.getElementById('overviewExtraResult');
+  if (!extraData || extraData.length === 0) {
+    container.innerHTML = '<li class="list-group-item text-muted text-center py-3">ไม่มีผู้ขึ้นเวรนอกเวลา</li>';
+    return;
+  }
+  
+  // จัดกลุ่มตามสถานที่/เวร
+  const groupedExtra = groupBy(extraData, 'ward');
+  let html = '';
+  for (const [ward, people] of Object.entries(groupedExtra)) {
+    html += `<li class="list-group-item bg-light text-danger fw-bold border-bottom">${ward}</li>`;
+    people.forEach(p => {
+      html += `<li class="list-group-item ps-4"><i class="bi bi-person-fill text-muted me-2"></i>${p.name} <span class="badge bg-danger ms-1">${p.role || ''}</span></li>`;
+    });
+  }
+  container.innerHTML = html;
+}
+
+function renderOverviewInTime(inTimeData) {
+  const container = document.getElementById('overviewInTimeResult');
+  if (!inTimeData || inTimeData.length === 0) {
+    container.innerHTML = '<li class="list-group-item text-muted text-center py-3">ไม่มีข้อมูลปฏิบัติงาน</li>';
+    return;
+  }
+
+  // จัดกลุ่มตามสถานที่/Ward
+  const groupedInTime = groupBy(inTimeData, 'ward');
+  let html = '';
+  
+  // เรียงลำดับชื่อแผนกตามตัวอักษร
+  const sortedWards = Object.keys(groupedInTime).sort();
+  
+  sortedWards.forEach(ward => {
+    html += `<li class="list-group-item bg-light text-primary fw-bold border-bottom">${ward}</li>`;
+    
+    // เรียงลำดับคนในแผนกตามชั้นปี (RoleYear)
+    const sortedPeople = groupedInTime[ward].sort((a, b) => (a.role || "").localeCompare(b.role || ""));
+    
+    sortedPeople.forEach(p => {
+      html += `<li class="list-group-item ps-4"><i class="bi bi-person-badge text-secondary me-2"></i>${p.name} <span class="badge bg-secondary ms-1">${p.role || ''}</span></li>`;
+    });
+  });
+  
+  container.innerHTML = html;
+}
+
