@@ -291,14 +291,17 @@ function renderSearchResults(filterWard, inTimeData, extraData) {
     for (const [wardName, people] of Object.entries(groupedInTime)) {
       html += `<li class="list-group-item bg-light text-primary fw-bold">${wardName}</li>`;
       people.forEach(p => { 
-        let roleBadge = p.role ? `<span class="badge bg-secondary ms-1">${p.role}</span>` : '';
-        html += `<li class="list-group-item"><i class="bi bi-person-fill text-secondary me-2"></i>${p.name} ${roleBadge}</li>`; 
+        let details = [];
+        if (p.role) details.push(p.role);
+        if (p.code) details.push(p.code);
+        let detailBadge = details.length > 0 ? `<span class="badge bg-secondary ms-1">(${details.join(', ')})</span>` : '';
+        html += `<li class="list-group-item"><i class="bi bi-person-fill text-secondary me-2"></i>${p.name} ${detailBadge}</li>`; 
       });
     }
     inTimeUl.innerHTML = html;
   }
 
-  // วาดนอกเวลา (เพิ่มการแสดง RoleYear ตรงนี้)
+  // วาดนอกเวลา
   if (filteredExtra.length === 0) {
     extraUl.innerHTML = '<li class="list-group-item text-muted text-center py-3">ไม่พบรายชื่อ</li>';
   } else {
@@ -307,9 +310,11 @@ function renderSearchResults(filterWard, inTimeData, extraData) {
     for (const [wardName, people] of Object.entries(groupedExtra)) {
       html += `<li class="list-group-item bg-light text-danger fw-bold">${wardName}</li>`;
       people.forEach(p => { 
-        // สร้างป้ายกำกับ RoleYear สีแดง
-        let roleBadge = p.role ? `<span class="badge bg-danger ms-1">${p.role}</span>` : '';
-        html += `<li class="list-group-item"><i class="bi bi-moon-stars-fill text-warning me-2"></i>${p.name} ${roleBadge}</li>`; 
+        let details = [];
+        if (p.role) details.push(p.role);
+        if (p.code) details.push(p.code);
+        let detailBadge = details.length > 0 ? `<span class="badge bg-danger ms-1">(${details.join(', ')})</span>` : '';
+        html += `<li class="list-group-item"><i class="bi bi-moon-stars-fill text-warning me-2"></i>${p.name} ${detailBadge}</li>`; 
       });
     }
     extraUl.innerHTML = html;
@@ -494,10 +499,14 @@ function renderOverviewExtra(extraData) {
   for (const [ward, people] of Object.entries(groupedExtra)) {
     html += `<li class="list-group-item bg-light text-danger fw-bold border-bottom">${ward}</li>`;
     people.forEach(p => {
-      // เพิ่มการแสดง RoleYear
-      let roleBadge = p.role ? `<span class="badge bg-danger ms-1">${p.role}</span>` : '';
+      // ประกอบข้อความ (RoleYear, Code)
+      let details = [];
+      if (p.role) details.push(p.role);
+      if (p.code) details.push(p.code); // ดึงรหัส Code
+      let detailBadge = details.length > 0 ? `<span class="badge bg-danger ms-1">(${details.join(', ')})</span>` : '';
+      
       html += `<li class="list-group-item ps-4">
-                 <i class="bi bi-moon-stars-fill text-warning me-2"></i>${p.name} ${roleBadge}
+                 <i class="bi bi-moon-stars-fill text-warning me-2"></i>${p.name} ${detailBadge}
                </li>`;
     });
   }
@@ -523,10 +532,14 @@ function renderOverviewInTime(inTimeData) {
     const sortedPeople = groupedInTime[ward].sort((a, b) => (a.role || "").localeCompare(b.role || ""));
     
     sortedPeople.forEach(p => {
-      // เพิ่มการแสดง RoleYear
-      let roleBadge = p.role ? `<span class="badge bg-secondary ms-1">${p.role}</span>` : '';
+      // ประกอบข้อความ (RoleYear, Code)
+      let details = [];
+      if (p.role) details.push(p.role);
+      if (p.code) details.push(p.code); // ดึงรหัส Code
+      let detailBadge = details.length > 0 ? `<span class="badge bg-secondary ms-1">(${details.join(', ')})</span>` : '';
+      
       html += `<li class="list-group-item ps-4">
-                 <i class="bi bi-person-fill text-secondary me-2"></i>${p.name} ${roleBadge}
+                 <i class="bi bi-person-fill text-secondary me-2"></i>${p.name} ${detailBadge}
                </li>`;
     });
   });
