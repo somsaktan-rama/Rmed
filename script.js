@@ -90,8 +90,38 @@ function showAppMain() {
   let navRole = currentUser.RoleYear || currentUser.roleyear || "";
   document.getElementById('displayUserName').innerText = `${navName} (${navRole})`;
   
+  // --- ระบบจัดการสิทธิ์ (Permission Control) ---
+  let userRoleUpper = navRole.toUpperCase().trim();
+  let allowedRoles = ["R1", "R2", "R3"];
+  
+  if (!allowedRoles.includes(userRoleUpper)) {
+    // ซ่อนแท็บที่ไม่เกี่ยวข้องสำหรับ Staff/Fellow/อื่นๆ
+    document.getElementById('tab-dashboard').parentElement.classList.add('d-none');
+    document.getElementById('tab-search').parentElement.classList.add('d-none');
+    document.getElementById('tab-consult').parentElement.classList.add('d-none');
+    document.getElementById('tab-swap').parentElement.classList.add('d-none');
+    
+    // บังคับให้แสดงหน้า Overview
+    document.getElementById('tab-overview').click();
+  } else {
+    // แสดงครบทุกแท็บสำหรับ R1, R2, R3
+    document.getElementById('tab-dashboard').parentElement.classList.remove('d-none');
+    document.getElementById('tab-search').parentElement.classList.remove('d-none');
+    document.getElementById('tab-consult').parentElement.classList.remove('d-none');
+    document.getElementById('tab-swap').parentElement.classList.remove('d-none');
+  }
+
+  // เรียกใช้ปฏิทิน
   initDatePicker();
+  
+  // โหลดข้อมูล Dashboard (จะโหลดเงียบๆ หลังบ้าน)
   loadDashboard();
+
+  // กดปุ่มดึงข้อมูลหน้าสรุปประจำวันให้อัตโนมัติ
+  const btnOverview = document.getElementById('btnSearchOverview');
+  if(btnOverview) {
+      btnOverview.click();
+  }
 }
 
 // =====================================
@@ -260,12 +290,15 @@ function renderSearchResults(filterWard, inTimeData, extraData) {
     const groupedInTime = groupBy(filteredInTime, 'ward');
     for (const [wardName, people] of Object.entries(groupedInTime)) {
       html += `<li class="list-group-item bg-light text-primary fw-bold">${wardName}</li>`;
-      people.forEach(p => { html += `<li class="list-group-item"><i class="bi bi-person-fill text-secondary me-2"></i>${p.name} <span class="badge bg-secondary ms-1">${p.role}</span></li>`; });
+      people.forEach(p => { 
+        let roleBadge = p.role ? `<span class="badge bg-secondary ms-1">${p.role}</span>` : '';
+        html += `<li class="list-group-item"><i class="bi bi-person-fill text-secondary me-2"></i>${p.name} ${roleBadge}</li>`; 
+      });
     }
     inTimeUl.innerHTML = html;
   }
 
-  // วาดนอกเวลา
+  // วาดนอกเวลา (เพิ่มการแสดง RoleYear ตรงนี้)
   if (filteredExtra.length === 0) {
     extraUl.innerHTML = '<li class="list-group-item text-muted text-center py-3">ไม่พบรายชื่อ</li>';
   } else {
@@ -273,7 +306,11 @@ function renderSearchResults(filterWard, inTimeData, extraData) {
     const groupedExtra = groupBy(filteredExtra, 'ward');
     for (const [wardName, people] of Object.entries(groupedExtra)) {
       html += `<li class="list-group-item bg-light text-danger fw-bold">${wardName}</li>`;
-      people.forEach(p => { html += `<li class="list-group-item"><i class="bi bi-moon-stars-fill text-warning me-2"></i>${p.name}</li>`; });
+      people.forEach(p => { 
+        // สร้างป้ายกำกับ RoleYear สีแดง
+        let roleBadge = p.role ? `<span class="badge bg-danger ms-1">${p.role}</span>` : '';
+        html += `<li class="list-group-item"><i class="bi bi-moon-stars-fill text-warning me-2"></i>${p.name} ${roleBadge}</li>`; 
+      });
     }
     extraUl.innerHTML = html;
   }
