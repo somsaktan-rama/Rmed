@@ -351,6 +351,8 @@ document.getElementById('btnSearchConsult').addEventListener('click', () => {
 // =====================================
 // 6. OVERVIEW DASHBOARD LOGIC
 // =====================================
+let currentOverviewData = null; // เก็บข้อมูลชั่วคราวเพื่อทำ Filter
+
 document.getElementById('btnSearchOverview').addEventListener('click', () => {
   const searchDate = document.getElementById('overviewDateInput').value;
   if (!searchDate) return Swal.fire('แจ้งเตือน', 'กรุณาเลือกวันที่', 'warning');
@@ -366,16 +368,57 @@ document.getElementById('btnSearchOverview').addEventListener('click', () => {
       if(res.status !== "success") throw new Error(res.message);
       
       Swal.close();
-      const data = res.data;
+      currentOverviewData = res.data; // บันทึกข้อมูล
+      
       document.getElementById('overviewResultContainer').classList.remove('d-none');
+      document.getElementById('overviewFilterContainer').classList.remove('d-none');
 
-      renderOverviewConsults(data.consults);
-      renderOverviewExtra(data.extraTime);
-      renderOverviewInTime(data.inTime);
+      // สร้างตัวเลือกใน Dropdown Filter
+      populateOverviewFilter(currentOverviewData);
+
+      // วาดผลลัพธ์ทั้งหมดเป็นค่าเริ่มต้น (ไม่ใส่ Filter)
+      renderOverviewAll(currentOverviewData, ""); 
     })
     .catch(err => Swal.fire('ข้อผิดพลาด', err.message, 'error'));
 });
 
+// เมื่อผู้ใช้เลือก Dropdown
+document.getElementById('overviewWardFilter').addEventListener('change', (e) => {
+  const selectedWard = e.target.value;
+  if (currentOverviewData) {
+    renderOverviewAll(currentOverviewData, selectedWard);
+  }
+});
+
+// ฟังก์ชันสร้างตัวเลือก Filter จากแผนกทั้งหมดที่มีในวันนั้น
+function populateOverviewFilter(data) {
+  const select = document.getElementById('overviewWardFilter');
+  let wards = new Set();
+  
+  if (data.consults) data.consults.forEach(item => wards.add(item.division));
+  if (data.extraTime) data.extraTime.forEach(item => wards.add(item.ward));
+  if (data.inTime) data.inTime.forEach(item => wards.add(item.ward));
+
+  let options = '<option value="">-- แสดงทุกแผนก --</option>';
+  Array.from(wards).sort().forEach(w => {
+    options += `<option value="${w}">${w}</option>`;
+  });
+  select.innerHTML = options;
+}
+
+// ฟังก์ชันหลักสำหรับสั่งวาดข้อมูลทั้ง 3 ส่วน
+function renderOverviewAll(data, filterWard) {
+  // กรองข้อมูลตามที่เลือก (ถ้าไม่ได้เลือก ให้คืนค่าทั้งหมด)
+  const filteredConsults = filterWard ? data.consults.filter(c => c.division === filterWard) : data.consults;
+  const filteredExtra = filterWard ? data.extraTime.filter(e => e.ward === filterWard) : data.extraTime;
+  const filteredInTime = filterWard ? data.inTime.filter(i => i.ward === filterWard) : data.inTime;
+
+  renderOverviewConsults(filteredConsults);
+  renderOverviewExtra(filteredExtra);
+  renderOverviewInTime(filteredInTime);
+}
+
+// 6.1 วาดข้อมูล Fellow รับปรึกษา
 function renderOverviewConsults(consults) {
   const container = document.getElementById('overviewConsultResult');
   if (!consults || consults.length === 0) {
@@ -393,7 +436,7 @@ function renderOverviewConsults(consults) {
       <li class="list-group-item d-flex justify-content-between align-items-center">
         <div>
           <strong class="text-success">${c.division}</strong><br>
-          <span class="text-dark small">${c.name}</span>
+          <span class="text-dark small"><i class="bi bi-person-badge text-secondary me-1"></i>${c.name}</span>
         </div>
         <div>${phoneBtn}</div>
       </li>`;
@@ -401,6 +444,7 @@ function renderOverviewConsults(consults) {
   container.innerHTML = html;
 }
 
+// 6.2 วาดข้อมูลเวรนอกเวลา
 function renderOverviewExtra(extraData) {
   const container = document.getElementById('overviewExtraResult');
   if (!extraData || extraData.length === 0) {
@@ -408,18 +452,22 @@ function renderOverviewExtra(extraData) {
     return;
   }
   
-  // จัดกลุ่มตามสถานที่/เวร
   const groupedExtra = groupBy(extraData, 'ward');
   let html = '';
   for (const [ward, people] of Object.entries(groupedExtra)) {
     html += `<li class="list-group-item bg-light text-danger fw-bold border-bottom">${ward}</li>`;
     people.forEach(p => {
-      html += `<li class="list-group-item ps-4"><i class="bi bi-person-fill text-muted me-2"></i>${p.name} <span class="badge bg-danger ms-1">${p.role || ''}</span></li>`;
+      // เพิ่มการแสดง RoleYear
+      let roleBadge = p.role ? `<span class="badge bg-danger ms-1">${p.role}</span>` : '';
+      html += `<li class="list-group-item ps-4">
+                 <i class="bi bi-moon-stars-fill text-warning me-2"></i>${p.name} ${roleBadge}
+               </li>`;
     });
   }
   container.innerHTML = html;
 }
 
+// 6.3 วาดข้อมูลปฏิบัติงานในเวลา
 function renderOverviewInTime(inTimeData) {
   const container = document.getElementById('overviewInTimeResult');
   if (!inTimeData || inTimeData.length === 0) {
@@ -427,24 +475,34 @@ function renderOverviewInTime(inTimeData) {
     return;
   }
 
-  // จัดกลุ่มตามสถานที่/Ward
   const groupedInTime = groupBy(inTimeData, 'ward');
   let html = '';
   
-  // เรียงลำดับชื่อแผนกตามตัวอักษร
   const sortedWards = Object.keys(groupedInTime).sort();
   
   sortedWards.forEach(ward => {
     html += `<li class="list-group-item bg-light text-primary fw-bold border-bottom">${ward}</li>`;
     
-    // เรียงลำดับคนในแผนกตามชั้นปี (RoleYear)
     const sortedPeople = groupedInTime[ward].sort((a, b) => (a.role || "").localeCompare(b.role || ""));
     
     sortedPeople.forEach(p => {
-      html += `<li class="list-group-item ps-4"><i class="bi bi-person-badge text-secondary me-2"></i>${p.name} <span class="badge bg-secondary ms-1">${p.role || ''}</span></li>`;
+      // เพิ่มการแสดง RoleYear
+      let roleBadge = p.role ? `<span class="badge bg-secondary ms-1">${p.role}</span>` : '';
+      html += `<li class="list-group-item ps-4">
+                 <i class="bi bi-person-fill text-secondary me-2"></i>${p.name} ${roleBadge}
+               </li>`;
     });
   });
   
   container.innerHTML = html;
 }
 
+// =====================================
+// HELPER FUNCTION 
+// =====================================
+function groupBy(array, key) {
+  return array.reduce((result, currentValue) => {
+    (result[currentValue[key]] = result[currentValue[key]] || []).push(currentValue);
+    return result;
+  }, {});
+}
