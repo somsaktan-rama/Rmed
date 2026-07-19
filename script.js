@@ -593,4 +593,88 @@ function checkPendingSwapsAlert() {
     .catch(err => console.log("Error:", err));
 }
 
+// ==========================================
+// ระบบ INBOX จัดการคำขอแลกเวร
+// ==========================================
+
+// โหลดข้อมูลเมื่อกดแท็บแลกเวร
+document.getElementById('tab-swap').addEventListener('click', () => {
+  loadPendingSwapsList();
+});
+
+function loadPendingSwapsList() {
+  let currentUid = currentUser.RamaID || currentUser.ramaid || currentUser.id;
+  if (!currentUid) return;
+  
+  const container = document.getElementById('pendingSwapsContainer');
+  const list = document.getElementById('pendingSwapsList');
+  
+  fetch(`${SCRIPT_URL}?action=check_pending_swaps&uid=${currentUid}`)
+    .then(res => res.json())
+    .then(res => {
+      if (res.status === "success" && res.data && res.data.length > 0) {
+        container.style.display = 'block'; // แสดงกล่อง Inbox
+        let html = '';
+        
+        res.data.forEach(req => {
+          // ถ้ามีการระบุวันคืนเวร ให้แสดงด้วย
+          let targetDateHtml = req.targetDate ? `<br><small class="text-secondary">วันที่คุณจะไปคืนเวร: ${req.targetDate}</small>` : '';
+          let fmtReqDate = req.reqDate ? new Date(req.reqDate).toLocaleDateString('th-TH') : '';
+          
+          html += `
+            <li class="list-group-item d-flex justify-content-between align-items-center">
+              <div>
+                <strong class="text-primary">${req.requesterName}</strong> ขอแลกเวร<br>
+                <small class="text-muted">วันที่คุณต้องไปแทน: <span class="text-danger fw-bold">${fmtReqDate || req.reqDate}</span></small>
+                ${targetDateHtml}
+              </div>
+              <div class="ms-2">
+                <button class="btn btn-sm btn-success rounded-pill me-1" onclick="respondSwap('${req.reqId}', 'Approved')">
+                  <i class="bi bi-check-lg"></i>
+                </button>
+                <button class="btn btn-sm btn-outline-danger rounded-pill" onclick="respondSwap('${req.reqId}', 'Rejected')">
+                  <i class="bi bi-x-lg"></i>
+                </button>
+              </div>
+            </li>`;
+        });
+        list.innerHTML = html;
+      } else {
+        container.style.display = 'none'; // ซ่อนกล่องถ้าไม่มีคำขอ
+      }
+    })
+    .catch(err => console.log(err));
+}
+
+// ฟังก์ชันเมื่อกดปุ่ม Approve หรือ Reject
+window.respondSwap = function(reqId, status) {
+  let statusText = status === "Approved" ? "อนุมัติ" : "ปฏิเสธ";
+  let confirmColor = status === "Approved" ? "#198754" : "#dc3545"; // เขียว หรือ แดง
+  
+  Swal.fire({
+    title: `ยืนยันการ${statusText}?`,
+    text: "เมื่อดำเนินการแล้ว ระบบจะบันทึกผลทันที",
+    icon: 'warning',
+    showCancelButton: true,
+    confirmButtonText: `ใช่, ${statusText}`,
+    cancelButtonText: 'ยกเลิก',
+    confirmButtonColor: confirmColor
+  }).then((result) => {
+    if (result.isConfirmed) {
+      Swal.fire({ title: 'กำลังดำเนินการ...', allowOutsideClick: false, didOpen: () => { Swal.showLoading() }});
+      
+      fetch(`${SCRIPT_URL}?action=update_swap_status&req_id=${reqId}&status=${status}`, { method: 'GET' })
+        .then(res => res.json())
+        .then(res => {
+           if(res.status === "success") {
+             Swal.fire('สำเร็จ!', res.message, 'success');
+             loadPendingSwapsList(); // รีเฟรชรายการ Inbox ทันที
+           } else {
+             Swal.fire('ข้อผิดพลาด', res.message, 'error');
+           }
+        });
+    }
+  });
+}
+
 
