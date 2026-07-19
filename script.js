@@ -122,6 +122,36 @@ function showAppMain() {
   if(btnOverview) {
       btnOverview.click();
   }
+  // 👇 --- โค้ดเพิ่มใหม่: แจ้งเตือนแลกเวร (SweetAlert2) --- 👇
+  let currentUid = currentUser.RamaID || currentUser.ramaid || currentUser.id;
+  if (currentUid) {
+    fetch(`${SCRIPT_URL}?action=check_pending_swaps&uid=${currentUid}`)
+      .then(res => res.json())
+      .then(res => {
+        if (res.status === "success" && res.data && res.data.length > 0) {
+          let reqCount = res.data.length;
+          let latestReq = res.data[res.data.length - 1]; // เอาคำขอล่าสุดมาโชว์ชื่อ
+          
+          Swal.fire({
+            title: 'แจ้งเตือนแลกเวร!',
+            html: `คุณมีคำขอแลกเวรที่รอการอนุมัติ <b>${reqCount} รายการ</b><br><span class="text-muted small">จาก: ${latestReq.requesterName}</span>`,
+            icon: 'info',
+            showCancelButton: true,
+            confirmButtonText: '<i class="bi bi-eye-fill"></i> ดูคำขอ',
+            cancelButtonText: 'ไว้ทีหลัง',
+            confirmButtonColor: '#0dcaf0' // สี info
+          }).then((result) => {
+            if (result.isConfirmed) {
+              // ถ้ากดดูคำขอ ให้เด้งไปที่แท็บ แลกเวร ทันที
+              let swapTab = document.getElementById('tab-swap');
+              if(swapTab) swapTab.click();
+            }
+          });
+        }
+      })
+      .catch(err => console.log("Error checking swap requests: ", err));
+  }
+  // 👆 --- จบโค้ดแจ้งเตือนแลกเวร --- 👆
 }
 
 // =====================================
