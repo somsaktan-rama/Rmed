@@ -547,7 +547,7 @@ function renderOverviewExtra(extraData) {
   container.innerHTML = html;
 }
 
-// 6.3 วาดข้อมูลปฏิบัติงานในเวลา
+// 6.3 วาดข้อมูลปฏิบัติงานในเวลา (แก้ไขบั๊กการเรียงลำดับแล้ว)
 function renderOverviewInTime(inTimeData) {
   const container = document.getElementById('overviewInTimeResult');
   if (!inTimeData || inTimeData.length === 0) {
@@ -563,16 +563,19 @@ function renderOverviewInTime(inTimeData) {
   sortedWards.forEach(ward => {
     html += `<li class="list-group-item bg-light text-primary fw-bold border-bottom">${ward}</li>`;
     
-    const sortedPeople = groupedInTime[ward].sort((a, b) => (a.role || "").localeCompare(b.role || ""));
+    // 🌟 แก้ไขจุดนี้: เติม .toString() เพื่อป้องกัน Error กรณี Role เป็นตัวเลข 🌟
+    const sortedPeople = groupedInTime[ward].sort((a, b) => {
+        let roleA = (a.role || "").toString();
+        let roleB = (b.role || "").toString();
+        return roleA.localeCompare(roleB);
+    });
     
     sortedPeople.forEach(p => {
-      // ประกอบข้อความ (RoleYear, Code)
       let details = [];
       if (p.role) details.push(p.role);
-      if (p.code) details.push(p.code); // ดึงรหัส Code
+      if (p.code) details.push(p.code); 
       let detailBadge = details.length > 0 ? `<span class="badge bg-secondary ms-1">(${details.join(', ')})</span>` : '';
       
-      // 🌟 สร้างปุ่ม PCT ถ้ามีข้อมูล 🌟
       let pctBtn = '';
       if (p.pct && p.pct.toString().trim() !== '') {
         let pctNum = p.pct.toString().trim();
