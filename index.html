@@ -2,7 +2,7 @@
 <html lang="th">
 <head>
   <meta charset="UTF-8">
-  <title>MedRama Schedule 1.04</title>
+  <title>MedRama Schedule 1.05</title>
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0">
   <link rel="icon" href="favicon.ico" type="image/x-icon">
   <!-- Flatpickr CSS -->
@@ -100,25 +100,10 @@
           
           <!-- ... โค้ดผลลัพธ์ overviewResultContainer ยังเหมือนเดิม ... -->
 
-          <div id="overviewResultContainer" class="d-none">
-            <!-- 1. Fellow Consult Section -->
-            <div class="card shadow-sm mb-3 border-start border-success border-4">
-              <div class="card-header bg-white fw-bold text-success">
-                <i class="bi bi-telephone-fill me-1"></i> Fellow รับปรึกษา
-              </div>
-              <ul class="list-group list-group-flush" id="overviewConsultResult"></ul>
-            </div>
-
-            <!-- 2. Extra Time Section -->
-            <div class="card shadow-sm mb-3 border-start border-danger border-4">
-              <div class="card-header bg-white fw-bold text-danger">
-                <i class="bi bi-moon-stars-fill me-1"></i> เวรนอกเวลา
-              </div>
-              <ul class="list-group list-group-flush" id="overviewExtraResult"></ul>
-            </div>
-
-            <!-- 3. In Time Section -->
-            <div class="card shadow-sm border-start border-primary border-4">
+         <div id="overviewResultContainer" class="d-none">
+            
+            <!-- 1. In Time Section (ปฏิบัติงานในเวลา อยู่บนสุด) -->
+            <div class="card shadow-sm mb-3 border-start border-primary border-4">
               <div class="card-header bg-white fw-bold text-primary">
                 <i class="bi bi-sun-fill me-1"></i> ปฏิบัติงานในเวลา
               </div>
@@ -126,6 +111,25 @@
                 <ul class="list-group list-group-flush" id="overviewInTimeResult"></ul>
               </div>
             </div>
+
+            <!-- 2. Extra Time Section (เวรนอกเวลา อยู่ตรงกลาง) -->
+            <div class="card shadow-sm mb-3 border-start border-danger border-4">
+              <div class="card-header bg-white fw-bold text-danger">
+                <i class="bi bi-moon-stars-fill me-1"></i> เวรนอกเวลา
+              </div>
+              <ul class="list-group list-group-flush" id="overviewExtraResult"></ul>
+            </div>
+
+            <!-- 3. Fellow Consult Section (Fellow รับปรึกษา อยู่ล่างสุด) -->
+            <div class="card shadow-sm border-start border-success border-4">
+              <div class="card-header bg-white fw-bold text-success">
+                <i class="bi bi-telephone-fill me-1"></i> Fellow รับปรึกษา
+              </div>
+              <ul class="list-group list-group-flush" id="overviewConsultResult"></ul>
+            </div>
+
+          </div>
+          
           </div>
         </div>
         
