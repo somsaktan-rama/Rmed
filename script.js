@@ -145,8 +145,6 @@ function initDatePicker() {
   flatpickr("#overviewDateInput", { ...flatpickrConfig, defaultDate: "today" });
   flatpickr("#searchDateInput", { ...flatpickrConfig, defaultDate: "today" });
   flatpickr("#consultDateInput", { ...flatpickrConfig, defaultDate: "today" });
-  flatpickr("#swapDateReq", { ...flatpickrConfig });
-  flatpickr("#swapDateTarget", { ...flatpickrConfig });
 }
 
 // =====================================
@@ -718,3 +716,104 @@ window.respondSwap = function(reqId, status) {
     }
   });
 }
+
+
+// ==========================================
+// 8. DYNAMIC SWAP FORM (Step-by-Step Dropdowns)
+// ==========================================
+
+// ทริกเกอร์ให้โหลดเวรตัวเองทันทีที่กดแท็บ "แลกเวร"
+document.getElementById('tab-swap').addEventListener('click', () => {
+  loadPendingSwapsList(); // ของเดิม (Inbox)
+  
+  // โหลดเวรของตัวเองลง Dropdown ช่องที่ 1
+  let currentUid = currentUser.RamaID || currentUser.ramaid || currentUser.id;
+  const selectReq = document.getElementById('swapDateReq');
+  
+  fetch(`${SCRIPT_URL}?action=get_swap_shifts&uid=${currentUid}`)
+    .then(res => res.json())
+    .then(res => {
+        selectReq.innerHTML = '<option value="">-- เลือกเวรของคุณ --</option>';
+        if (res.data && res.data.length > 0) {
+            res.data.forEach(shift => {
+                // แปลง ค.ศ. เป็น พ.ศ. สวยๆ
+                let parts = shift.display.split(' ')[0].split('/');
+                let thYear = parseInt(parts[2]) + 543;
+                let thDisplay = `${parts[0]}/${parts[1]}/${thYear} ${shift.display.substring(shift.display.indexOf('('))}`;
+                
+                selectReq.innerHTML += `<option value="${shift.dateValue}">${thDisplay}</option>`;
+            });
+        } else {
+            selectReq.innerHTML = '<option value="">ไม่มีเวรนอกเวลาในอนาคต</option>';
+        }
+        
+        // รีเซ็ตช่อง 2 และ 3
+        document.getElementById('swapTargetId').innerHTML = '<option value="">-- กรุณาเลือกวันที่ก่อน --</option>';
+        document.getElementById('swapTargetId').disabled = true;
+        document.getElementById('swapDateTarget').innerHTML = '<option value="">-- กรุณาเลือกเพื่อนก่อน --</option>';
+        document.getElementById('swapDateTarget').disabled = true;
+    });
+});
+
+// เมื่อเลือกช่องที่ 1 (วันที่ตัวเอง) -> ให้โหลดรายชื่อเพื่อนที่ว่าง (ช่องที่ 2)
+document.getElementById('swapDateReq').addEventListener('change', (e) => {
+    let reqDate = e.target.value;
+    let currentUid = currentUser.RamaID || currentUser.ramaid || currentUser.id;
+    const selectTargetUser = document.getElementById('swapTargetId');
+    
+    if (!reqDate) {
+        selectTargetUser.innerHTML = '<option value="">-- กรุณาเลือกวันที่ก่อน --</option>';
+        selectTargetUser.disabled = true;
+        document.getElementById('swapDateTarget').innerHTML = '<option value="">-- กรุณาเลือกเพื่อนก่อน --</option>';
+        document.getElementById('swapDateTarget').disabled = true;
+        return;
+    }
+
+    selectTargetUser.disabled = false;
+    selectTargetUser.innerHTML = '<option value="">กำลังค้นหาเพื่อนที่ว่าง...</option>';
+    
+    fetch(`${SCRIPT_URL}?action=get_eligible_targets&uid=${currentUid}&req_date=${reqDate}`)
+      .then(res => res.json())
+      .then(res => {
+          selectTargetUser.innerHTML = '<option value="">-- เลือกเพื่อนมาแทน --</option>';
+          if (res.data && res.data.length > 0) {
+              res.data.forEach(t => {
+                  selectTargetUser.innerHTML += `<option value="${t.id}">${t.name}</option>`;
+              });
+          } else {
+              selectTargetUser.innerHTML = '<option value="">(ไม่มีเพื่อนชั้นปีเดียวกันที่ว่างเลย)</option>';
+          }
+      });
+});
+
+// เมื่อเลือกช่องที่ 2 (ชื่อเพื่อน) -> ให้โหลดเวรของเพื่อนคนนั้นมาแสดงให้เลือกคืน (ช่องที่ 3)
+document.getElementById('swapTargetId').addEventListener('change', (e) => {
+    let targetUid = e.target.value;
+    const selectDateTarget = document.getElementById('swapDateTarget');
+    
+    if (!targetUid) {
+        selectDateTarget.innerHTML = '<option value="">-- กรุณาเลือกเพื่อนก่อน --</option>';
+        selectDateTarget.disabled = true;
+        return;
+    }
+
+    selectDateTarget.disabled = false;
+    selectDateTarget.innerHTML = '<option value="">กำลังโหลดเวรของเพื่อน...</option>';
+    
+    // ดึงตารางเวร โดยใช้ id ของเพื่อนเป้าหมายแทน
+    fetch(`${SCRIPT_URL}?action=get_swap_shifts&uid=${targetUid}`)
+      .then(res => res.json())
+      .then(res => {
+          selectDateTarget.innerHTML = '<option value="">-- แลกให้เปล่า (ไม่คืนเวร) --</option>';
+          if (res.data && res.data.length > 0) {
+              res.data.forEach(shift => {
+                  let parts = shift.display.split(' ')[0].split('/');
+                  let thYear = parseInt(parts[2]) + 543;
+                  let thDisplay = `${parts[0]}/${parts[1]}/${thYear} ${shift.display.substring(shift.display.indexOf('('))}`;
+                  
+                  selectDateTarget.innerHTML += `<option value="${shift.dateValue}">${thDisplay}</option>`;
+              });
+          }
+      });
+});
+
