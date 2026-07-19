@@ -122,36 +122,6 @@ function showAppMain() {
   if(btnOverview) {
       btnOverview.click();
   }
-  // 👇 --- โค้ดเพิ่มใหม่: แจ้งเตือนแลกเวร (SweetAlert2) --- 👇
-  let currentUid = currentUser.RamaID || currentUser.ramaid || currentUser.id;
-  if (currentUid) {
-    fetch(`${SCRIPT_URL}?action=check_pending_swaps&uid=${currentUid}`)
-      .then(res => res.json())
-      .then(res => {
-        if (res.status === "success" && res.data && res.data.length > 0) {
-          let reqCount = res.data.length;
-          let latestReq = res.data[res.data.length - 1]; // เอาคำขอล่าสุดมาโชว์ชื่อ
-          
-          Swal.fire({
-            title: 'แจ้งเตือนแลกเวร!',
-            html: `คุณมีคำขอแลกเวรที่รอการอนุมัติ <b>${reqCount} รายการ</b><br><span class="text-muted small">จาก: ${latestReq.requesterName}</span>`,
-            icon: 'info',
-            showCancelButton: true,
-            confirmButtonText: '<i class="bi bi-eye-fill"></i> ดูคำขอ',
-            cancelButtonText: 'ไว้ทีหลัง',
-            confirmButtonColor: '#0dcaf0' // สี info
-          }).then((result) => {
-            if (result.isConfirmed) {
-              // ถ้ากดดูคำขอ ให้เด้งไปที่แท็บ แลกเวร ทันที
-              let swapTab = document.getElementById('tab-swap');
-              if(swapTab) swapTab.click();
-            }
-          });
-        }
-      })
-      .catch(err => console.log("Error checking swap requests: ", err));
-  }
-  // 👆 --- จบโค้ดแจ้งเตือนแลกเวร --- 👆
 }
 
 // =====================================
@@ -439,7 +409,7 @@ document.getElementById('btnSearchOverview').addEventListener('click', () => {
     .then(res => {
       if(res.status !== "success") throw new Error(res.message);
       
-      Swal.close();
+      Swal.close(); // ปิด popup โหลด
       currentOverviewData = res.data; // บันทึกข้อมูล
       
       document.getElementById('overviewResultContainer').classList.remove('d-none');
@@ -450,7 +420,13 @@ document.getElementById('btnSearchOverview').addEventListener('click', () => {
 
       // วาดผลลัพธ์ทั้งหมดเป็นค่าเริ่มต้น (ไม่ใส่ Filter)
       renderOverviewAll(currentOverviewData, ""); 
+      // 🔥 เพิ่ม 4 บรรทัดนี้ เพื่อให้เด้งเตือนแลกเวรเฉพาะตอนล็อกอินครั้งแรก
+      if (window.isFirstLoad === undefined) {
+          checkPendingSwapsAlert();
+          window.isFirstLoad = false;
+      }
     })
+    
     .catch(err => Swal.fire('ข้อผิดพลาด', err.message, 'error'));
 });
 
@@ -586,3 +562,35 @@ function groupBy(array, key) {
     return result;
   }, {});
 }
+
+function checkPendingSwapsAlert() {
+  let currentUid = currentUser.RamaID || currentUser.ramaid || currentUser.id;
+  if (!currentUid) return;
+  
+  fetch(`${SCRIPT_URL}?action=check_pending_swaps&uid=${currentUid}`)
+    .then(res => res.json())
+    .then(res => {
+      if (res.status === "success" && res.data && res.data.length > 0) {
+        let reqCount = res.data.length;
+        let latestReq = res.data[res.data.length - 1]; 
+        
+        Swal.fire({
+          title: 'แจ้งเตือนแลกเวร!',
+          html: `คุณมีคำขอแลกเวรที่รอการอนุมัติ <b>${reqCount} รายการ</b><br><span class="text-muted small">จาก: ${latestReq.requesterName}</span>`,
+          icon: 'info',
+          showCancelButton: true,
+          confirmButtonText: '<i class="bi bi-eye-fill"></i> ดูคำขอ',
+          cancelButtonText: 'ไว้ทีหลัง',
+          confirmButtonColor: '#0dcaf0' 
+        }).then((result) => {
+          if (result.isConfirmed) {
+            let swapTab = document.getElementById('tab-swap');
+            if(swapTab) swapTab.click();
+          }
+        });
+      }
+    })
+    .catch(err => console.log("Error:", err));
+}
+
+
