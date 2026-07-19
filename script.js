@@ -864,3 +864,58 @@ document.getElementById('swapTargetId').addEventListener('change', (e) => {
       });
 });
 
+// ==========================================
+// 9. SUBMIT SWAP REQUEST (ส่งคำขอแลกเวร)
+// ==========================================
+document.getElementById('btnSubmitSwap').addEventListener('click', () => {
+    // 1. อ่านค่าจาก Dropdown ทั้ง 3 ช่อง
+    const dateReq = document.getElementById('swapDateReq').value;
+    const targetId = document.getElementById('swapTargetId').value;
+    const dateTarget = document.getElementById('swapDateTarget').value; // อาจจะว่างได้ ถ้าแลกให้เปล่า
+    const currentUid = currentUser.RamaID || currentUser.ramaid || currentUser.id;
+
+    // 2. เช็คว่าเลือกข้อมูลครบไหม
+    if (!dateReq || !targetId) {
+        return Swal.fire('ข้อมูลไม่ครบ', 'กรุณาเลือกเวรของคุณ และเพื่อนที่จะมาแทนให้ครบถ้วน', 'warning');
+    }
+
+    // 3. ถามยืนยันก่อนส่ง
+    Swal.fire({
+        title: 'ยืนยันการส่งคำขอ?',
+        text: "ระบบจะส่งข้อความแจ้งเตือนไปหาเพื่อนของคุณเพื่อรอการอนุมัติ",
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonText: 'ส่งคำขอเลย',
+        cancelButtonText: 'ยกเลิก',
+        confirmButtonColor: '#ffc107',
+        color: '#000'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            Swal.fire({ title: 'กำลังบันทึกข้อมูล...', allowOutsideClick: false, didOpen: () => { Swal.showLoading() }});
+            
+            // 4. ส่งข้อมูลไปให้ Google Apps Script
+            fetch(`${SCRIPT_URL}?action=submit_swap&req_id=${currentUid}&target_id=${targetId}&date_req=${dateReq}&date_target=${dateTarget}`, {
+                method: 'GET',
+                redirect: 'follow'
+            })
+            .then(res => res.json())
+            .then(res => {
+                if(res.status === "success") {
+                    Swal.fire('สำเร็จ!', 'ส่งคำขอแลกเวรเรียบร้อยแล้ว รอเพื่อนอนุมัติได้เลย', 'success');
+                    
+                    // รีเซ็ตฟอร์มกลับเป็นค่าเริ่มต้น
+                    document.getElementById('swapDateReq').value = '';
+                    document.getElementById('swapTargetId').innerHTML = '<option value="">-- กรุณาเลือกวันที่ด้านบนก่อน --</option>';
+                    document.getElementById('swapTargetId').disabled = true;
+                    document.getElementById('swapDateTarget').innerHTML = '<option value="">-- กรุณาเลือกเพื่อนด้านบนก่อน --</option>';
+                    document.getElementById('swapDateTarget').disabled = true;
+                } else {
+                    Swal.fire('ข้อผิดพลาด', res.message, 'error');
+                }
+            })
+            .catch(err => Swal.fire('ข้อผิดพลาด', err.message, 'error'));
+        }
+    });
+});
+
+
