@@ -597,7 +597,23 @@ function checkPendingSwapsAlert() {
 // ระบบ INBOX จัดการคำขอแลกเวร
 // ==========================================
 
-// โหลดข้อมูลเมื่อกดแท็บแลกเวร
+// ฟังก์ชันแปลงวันที่ให้เป็นภาษาไทยแบบสวยงาม (มีวันจันทร์-อาทิตย์ และ พ.ศ.)
+function formatThaiFullDate(dateStr) {
+  if (!dateStr) return "";
+  const date = new Date(dateStr);
+  if (isNaN(date)) return dateStr;
+  
+  const weekdays = ["วันอาทิตย์", "วันจันทร์", "วันอังคาร", "วันพุธ", "วันพฤหัสบดี", "วันศุกร์", "วันเสาร์"];
+  const months = ["มกราคม", "กุมภาพันธ์", "มีนาคม", "เมษายน", "พฤษภาคม", "มิถุนายน", "กรกฎาคม", "สิงหาคม", "กันยายน", "ตุลาคม", "พฤศจิกายน", "ธันวาคม"];
+  
+  const d = date.getDate();
+  const m = months[date.getMonth()];
+  const y = date.getFullYear() + 543;
+  const w = weekdays[date.getDay()];
+  
+  return `${w}ที่ ${d} ${m} ${y}`;
+}
+
 document.getElementById('tab-swap').addEventListener('click', () => {
   loadPendingSwapsList();
 });
@@ -613,19 +629,23 @@ function loadPendingSwapsList() {
     .then(res => res.json())
     .then(res => {
       if (res.status === "success" && res.data && res.data.length > 0) {
-        container.style.display = 'block'; // แสดงกล่อง Inbox
+        container.style.display = 'block'; 
         let html = '';
         
         res.data.forEach(req => {
-          // ถ้ามีการระบุวันคืนเวร ให้แสดงด้วย
-          let targetDateHtml = req.targetDate ? `<br><small class="text-secondary">วันที่คุณจะไปคืนเวร: ${req.targetDate}</small>` : '';
-          let fmtReqDate = req.reqDate ? new Date(req.reqDate).toLocaleDateString('th-TH') : '';
+          // ใช้ฟังก์ชันแปลงวันที่ภาษาไทย
+          let fmtReqDate = req.reqDate ? formatThaiFullDate(req.reqDate) : '';
+          let fmtTargetDate = req.targetDate ? formatThaiFullDate(req.targetDate) : '';
           
+          let targetDateHtml = req.targetDate ? `<br><small class="text-secondary">📅 วันที่คุณจะไปคืนเวร: <span class="fw-bold">${fmtTargetDate || req.targetDate}</span></small>` : '';
+          let wardHtml = req.ward && req.ward !== "ไม่ระบุสถานที่" ? `<br><small class="text-secondary">🏥 สถานที่: <span class="badge bg-danger">${req.ward}</span></small>` : '';
+
           html += `
             <li class="list-group-item d-flex justify-content-between align-items-center">
               <div>
-                <strong class="text-primary">${req.requesterName}</strong> ขอแลกเวร<br>
-                <small class="text-muted">วันที่คุณต้องไปแทน: <span class="text-danger fw-bold">${fmtReqDate || req.reqDate}</span></small>
+                <strong class="text-primary"><i class="bi bi-person-fill me-1"></i>${req.requesterName}</strong> ขอแลกเวร
+                ${wardHtml}
+                <br><small class="text-muted">🔴 วันที่คุณต้องไปแทน: <span class="text-danger fw-bold">${fmtReqDate || req.reqDate}</span></small>
                 ${targetDateHtml}
               </div>
               <div class="ms-2">
@@ -640,7 +660,7 @@ function loadPendingSwapsList() {
         });
         list.innerHTML = html;
       } else {
-        container.style.display = 'none'; // ซ่อนกล่องถ้าไม่มีคำขอ
+        container.style.display = 'none'; 
       }
     })
     .catch(err => console.log(err));
