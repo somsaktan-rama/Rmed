@@ -484,7 +484,7 @@ function renderOverviewAll(data, filterWard) {
 
   renderOverviewConsults(filteredConsults);
   renderOverviewExtra(filteredExtra);
-  renderOverviewInTime(filteredInTime);
+  (filteredInTime);
 }
 
 // 6.1 วาดข้อมูล Fellow รับปรึกษา
@@ -532,8 +532,15 @@ function renderOverviewExtra(extraData) {
       if (p.code) details.push(p.code); // ดึงรหัส Code
       let detailBadge = details.length > 0 ? `<span class="badge bg-danger ms-1">(${details.join(', ')})</span>` : '';
       
-      html += `<li class="list-group-item ps-4">
-                 <i class="bi bi-moon-stars-fill text-warning me-2"></i>${p.name} ${detailBadge}
+      // 🌟 สร้างปุ่ม PCT ถ้ามีข้อมูล 🌟
+      let pctBtn = '';
+      if (p.pct && p.pct.toString().trim() !== '') {
+        let pctNum = p.pct.toString().trim();
+        pctBtn = `<a href="tel:022011000,${pctNum}" class="btn btn-sm btn-outline-success ms-2 rounded-pill py-0 px-2" style="font-size: 0.8rem;"><i class="bi bi-telephone-outbound-fill"></i> ${pctNum}</a>`;
+      }
+      
+      html += `<li class="list-group-item ps-4 d-flex align-items-center flex-wrap">
+                 <i class="bi bi-moon-stars-fill text-warning me-2"></i>${p.name} ${detailBadge} ${pctBtn}
                </li>`;
     });
   }
@@ -565,8 +572,15 @@ function renderOverviewInTime(inTimeData) {
       if (p.code) details.push(p.code); // ดึงรหัส Code
       let detailBadge = details.length > 0 ? `<span class="badge bg-secondary ms-1">(${details.join(', ')})</span>` : '';
       
-      html += `<li class="list-group-item ps-4">
-                 <i class="bi bi-person-fill text-secondary me-2"></i>${p.name} ${detailBadge}
+      // 🌟 สร้างปุ่ม PCT ถ้ามีข้อมูล 🌟
+      let pctBtn = '';
+      if (p.pct && p.pct.toString().trim() !== '') {
+        let pctNum = p.pct.toString().trim();
+        pctBtn = `<a href="tel:022011000,${pctNum}" class="btn btn-sm btn-outline-success ms-2 rounded-pill py-0 px-2" style="font-size: 0.8rem;"><i class="bi bi-telephone-outbound-fill"></i> ${pctNum}</a>`;
+      }
+      
+      html += `<li class="list-group-item ps-4 d-flex align-items-center flex-wrap">
+                 <i class="bi bi-person-fill text-secondary me-2"></i>${p.name} ${detailBadge} ${pctBtn}
                </li>`;
     });
   });
