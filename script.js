@@ -902,8 +902,11 @@ document.getElementById('btnSubmitSwap').addEventListener('click', () => {
         if (result.isConfirmed) {
             Swal.fire({ title: 'กำลังบันทึกข้อมูล...', allowOutsideClick: false, didOpen: () => { Swal.showLoading() }});
             
+            // 🔥 เพิ่มตัวกัน Browser แอบจำค่าเก่า
+            const timeBuster = new Date().getTime();
+            
             // 4. ส่งข้อมูลไปให้ Google Apps Script
-            fetch(`${SCRIPT_URL}?action=submit_swap&req_id=${currentUid}&target_id=${targetId}&date_req=${dateReq}&date_target=${dateTarget}`, {
+            fetch(`${SCRIPT_URL}?action=submit_swap&req_id=${currentUid}&target_id=${targetId}&date_req=${dateReq}&date_target=${dateTarget}&t=${timeBuster}`, {
                 method: 'GET',
                 redirect: 'follow'
             })
@@ -911,8 +914,12 @@ document.getElementById('btnSubmitSwap').addEventListener('click', () => {
             .then(res => {
                 if(res.status === "success") {
                     Swal.fire('สำเร็จ!', 'ส่งคำขอแลกเวรเรียบร้อยแล้ว รอเพื่อนอนุมัติได้เลย', 'success');
-                    loadOutgoingSwapsList(); // 🌟 สิ่งที่ต้องพิมพ์เพิ่ม (อัปเดตกล่องทันทีที่เพิ่งส่งเสร็จ)
-                  
+                    
+                    // 🔥 หน่วงเวลา 1.5 วินาที เพื่อให้ Google Sheets บันทึกแถวใหม่เสร็จก่อน แล้วค่อยดึงข้อมูลใหม่
+                    setTimeout(() => {
+                        loadOutgoingSwapsList();
+                    }, 1500);
+                    
                     // รีเซ็ตฟอร์มกลับเป็นค่าเริ่มต้น
                     document.getElementById('swapDateReq').value = '';
                     document.getElementById('swapTargetId').innerHTML = '<option value="">-- กรุณาเลือกวันที่ด้านบนก่อน --</option>';
