@@ -1,4 +1,4 @@
-const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxfnYaqHKRbrBebamIEUSLu9iFxKtx9EntAwfoXcbm1UzZHXmA1h6zwfPIkgRPAqvui/exec"; 
+const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwBn6Hev9O4jANQtwQA-8VfTHSUaOkUY6fjIhkuWf9IqMBkAbcULdUL4grE_dU4nfDT/exec"; 
 let currentUser = null;
 let currentSearchResults = null; 
 
@@ -635,7 +635,8 @@ function formatThaiFullDate(dateStr) {
 }
 
 document.getElementById('tab-swap').addEventListener('click', () => {
-  loadPendingSwapsList();
+  loadPendingSwapsList(); // ของเดิม (Inbox ขาเข้า)
+  loadOutgoingSwapsList(); // 🌟 สิ่งที่ต้องพิมพ์เพิ่ม (Inbox ขาออก)
 });
 
 function loadPendingSwapsList() {
@@ -910,7 +911,8 @@ document.getElementById('btnSubmitSwap').addEventListener('click', () => {
             .then(res => {
                 if(res.status === "success") {
                     Swal.fire('สำเร็จ!', 'ส่งคำขอแลกเวรเรียบร้อยแล้ว รอเพื่อนอนุมัติได้เลย', 'success');
-                    
+                    loadOutgoingSwapsList(); // 🌟 สิ่งที่ต้องพิมพ์เพิ่ม (อัปเดตกล่องทันทีที่เพิ่งส่งเสร็จ)
+                  
                     // รีเซ็ตฟอร์มกลับเป็นค่าเริ่มต้น
                     document.getElementById('swapDateReq').value = '';
                     document.getElementById('swapTargetId').innerHTML = '<option value="">-- กรุณาเลือกวันที่ด้านบนก่อน --</option>';
@@ -926,4 +928,81 @@ document.getElementById('btnSubmitSwap').addEventListener('click', () => {
     });
 });
 
+// ==========================================
+// ระบบดึงคำขอที่เราเป็นคนส่ง (Outgoing Swaps)
+// ==========================================
+function loadOutgoingSwapsList() {
+  let currentUid = currentUser.RamaID || currentUser.ramaid || currentUser.id;
+  if (!currentUid) return;
+  
+  const container = document.getElementById('outgoingSwapsContainer');
+  const list = document.getElementById('outgoingSwapsList');
+  
+  fetch(`${SCRIPT_URL}?action=check_outgoing_swaps&uid=${currentUid}`)
+    .then(res => res.json())
+    .then(res => {
+      if (res.status === "success" && res.data && res.data.length > 0) {
+        container.style.display = 'block'; 
+        let html = '';
+        
+        res.data.forEach(req => {
+          let fmtReqDate = req.reqDate ? formatThaiFullDate(req.reqDate) : '';
+          let fmtTargetDate = req.targetDate ? formatThaiFullDate(req.targetDate) : '';
+          let targetDateHtml = req.targetDate ? `<br><small class="text-secondary">📅 วันที่คุณจะไปคืนเวร: <span class="fw-bold">${fmtTargetDate || req.targetDate}</span></small>` : '';
+
+          html += `
+            <li class="list-group-item d-flex justify-content-between align-items-center bg-light">
+              <div>
+                <strong class="text-dark"><i class="bi bi-arrow-right-circle-fill text-warning me-1"></i>ส่งถึง: ${req.targetName}</strong>
+                <br><small class="text-muted">🔴 วันที่คุณต้องการแลก: <span class="text-danger fw-bold">${fmtReqDate || req.reqDate}</span></small>
+                ${targetDateHtml}
+              </div>
+              <div class="ms-2">
+                <button class="btn btn-sm btn-outline-danger rounded-pill shadow-sm" onclick="cancelOutgoingSwap('${req.reqId}')">
+                  ยกเลิกคำขอ
+                </button>
+              </div>
+            </li>`;
+        });
+        list.innerHTML = html;
+      } else {
+        container.style.display = 'none'; 
+      }
+    })
+    .catch(err => console.log(err));
+}
+
+// ฟังก์ชันสำหรับกดยกเลิกคำขอของตัวเอง
+window.cancelOutgoingSwap = function(reqId) {
+  Swal.fire({
+    title: 'ยกเลิกคำขอแลกเวร?',
+    text: "คำขอนี้จะถูกยกเลิก และส่งกลับไปไม่ได้อีก",
+    icon: 'warning',
+    showCancelButton: true,
+    confirmButtonText: 'ใช่, ยกเลิกคำขอ',
+    cancelButtonText: 'ปิด',
+    confirmButtonColor: '#dc3545'
+  }).then((result) => {
+    if (result.isConfirmed) {
+      Swal.fire({ title: 'กำลังยกเลิก...', allowOutsideClick: false, didOpen: () => { Swal.showLoading() }});
+      const timeBuster = new Date().getTime();
+      
+      // ส่งสถานะ Cancelled ไปให้ระบบ
+      fetch(`${SCRIPT_URL}?action=update_swap_status&req_id=${reqId}&status=Cancelled&t=${timeBuster}`, { 
+          method: 'GET',
+          redirect: 'follow'
+      })
+        .then(res => res.json())
+        .then(res => {
+           if(res.status === "success") {
+             Swal.fire('สำเร็จ!', 'ยกเลิกคำขอแลกเวรเรียบร้อยแล้ว', 'success');
+             loadOutgoingSwapsList(); // โหลดรายการใหม่ทันที
+           } else {
+             Swal.fire('ข้อผิดพลาด', res.message, 'error');
+           }
+        })
+        .catch(err => Swal.fire('เกิดข้อผิดพลาด', err.message, 'error'));
+    }
+  });
+}
 
