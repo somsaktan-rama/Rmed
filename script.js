@@ -398,7 +398,7 @@ document.getElementById('btnSearchConsult').addEventListener('click', () => {
 
 
 // =====================================
-// 6. OVERVIEW DASHBOARD LOGIC
+// 6. OVERVIEW DASHBOARD LOGIC (อัปเดตตัดคำนำหน้า R1, R2, R3)
 // =====================================
 let currentOverviewData = null; // เก็บข้อมูลชั่วคราวเพื่อทำ Filter
 
@@ -416,6 +416,15 @@ document.getElementById('btnSearchOverview').addEventListener('click', () => {
     .then(res => {
       if(res.status !== "success") throw new Error(res.message);
       
+      // 🌟 เพิ่มโค้ดส่วนนี้: ตัดคำว่า R1-, R2-, R3- ทิ้ง เพื่อให้จัดกลุ่มแผนกเดียวกันได้
+      if (res.data && res.data.extraTime) {
+          res.data.extraTime = res.data.extraTime.map(item => {
+              // ใช้ Regular Expression (Regex) หาคำที่ขึ้นต้นด้วย R1-, R2-, R3- (ไม่สนตัวพิมพ์เล็กใหญ่) และแทนที่ด้วยความว่างเปล่า
+              item.ward = item.ward.replace(/^(R1|R2|R3)-/i, '').trim();
+              return item;
+          });
+      }
+      
       Swal.close(); // ปิด popup โหลด
       currentOverviewData = res.data; // บันทึกข้อมูล
       
@@ -427,13 +436,13 @@ document.getElementById('btnSearchOverview').addEventListener('click', () => {
 
       // วาดผลลัพธ์ทั้งหมดเป็นค่าเริ่มต้น (ไม่ใส่ Filter)
       renderOverviewAll(currentOverviewData, ""); 
-      // 🔥 เพิ่ม 4 บรรทัดนี้ เพื่อให้เด้งเตือนแลกเวรเฉพาะตอนล็อกอินครั้งแรก
+      
+      // ให้เด้งเตือนแลกเวรเฉพาะตอนล็อกอินครั้งแรก
       if (window.isFirstLoad === undefined) {
           checkPendingSwapsAlert();
           window.isFirstLoad = false;
       }
     })
-    
     .catch(err => Swal.fire('ข้อผิดพลาด', err.message, 'error'));
 });
 
