@@ -639,6 +639,9 @@ document.getElementById('tab-swap').addEventListener('click', () => {
   loadOutgoingSwapsList(); // 🌟 สิ่งที่ต้องพิมพ์เพิ่ม (Inbox ขาออก)
 });
 
+// ==========================================
+// ระบบดึงคำขอที่เพื่อนส่งมาหาเรา (Inbox ขาเข้า) - อัปเดตปุ่มเป็นข้อความชัดเจน
+// ==========================================
 function loadPendingSwapsList() {
   let currentUid = currentUser.RamaID || currentUser.ramaid || currentUser.id;
   if (!currentUid) return;
@@ -669,14 +672,18 @@ function loadPendingSwapsList() {
                 <br><small class="text-muted">🔴 วันที่คุณต้องไปแทน: <span class="text-danger fw-bold">${fmtReqDate || req.reqDate}</span></small>
                 ${targetDateHtml}
               </div>
-              <div class="ms-2">
-                <button class="btn btn-sm btn-success rounded-pill me-1" onclick="respondSwap('${req.reqId}', 'Approved')">
-                  <i class="bi bi-check-lg"></i>
+              
+              <!-- 🌟 เปลี่ยนปุ่มจาก ไอคอน เป็น ข้อความ ตรงนี้ครับ 🌟 -->
+              <div class="ms-2 d-flex gap-2">
+                <button class="btn btn-sm btn-success rounded-pill px-3 shadow-sm fw-bold" onclick="respondSwap('${req.reqId}', 'Approved')">
+                  อนุมัติ
                 </button>
-                <button class="btn btn-sm btn-outline-danger rounded-pill" onclick="respondSwap('${req.reqId}', 'Rejected')">
-                  <i class="bi bi-x-lg"></i>
+                <button class="btn btn-sm btn-outline-danger rounded-pill px-3 shadow-sm fw-bold" onclick="respondSwap('${req.reqId}', 'Rejected')">
+                  ปฏิเสธ
                 </button>
               </div>
+              <!-- 🌟 สิ้นสุดส่วนปุ่ม 🌟 -->
+              
             </li>`;
         });
         list.innerHTML = html;
