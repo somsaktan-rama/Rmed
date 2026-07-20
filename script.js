@@ -686,10 +686,10 @@ function loadPendingSwapsList() {
     .catch(err => console.log(err));
 }
 
-// ฟังก์ชันเมื่อกดปุ่ม Approve หรือ Reject
+// ฟังก์ชันเมื่อกดปุ่ม Approve หรือ Reject (อัปเดตกัน Cache)
 window.respondSwap = function(reqId, status) {
   let statusText = status === "Approved" ? "อนุมัติ" : "ปฏิเสธ";
-  let confirmColor = status === "Approved" ? "#198754" : "#dc3545"; // เขียว หรือ แดง
+  let confirmColor = status === "Approved" ? "#198754" : "#dc3545"; 
   
   Swal.fire({
     title: `ยืนยันการ${statusText}?`,
@@ -703,16 +703,24 @@ window.respondSwap = function(reqId, status) {
     if (result.isConfirmed) {
       Swal.fire({ title: 'กำลังดำเนินการ...', allowOutsideClick: false, didOpen: () => { Swal.showLoading() }});
       
-      fetch(`${SCRIPT_URL}?action=update_swap_status&req_id=${reqId}&status=${status}`, { method: 'GET' })
+      // 🔥 เพิ่มตัวแปรเวลา ป้องกันเบราว์เซอร์แอบจำค่าเก่า (Cache)
+      const timeBuster = new Date().getTime();
+      
+      fetch(`${SCRIPT_URL}?action=update_swap_status&req_id=${reqId}&status=${status}&t=${timeBuster}`, { 
+          method: 'GET',
+          redirect: 'follow'
+      })
         .then(res => res.json())
         .then(res => {
+           // จะต้องเห็นข้อความว่าสลับชื่อ "(X ช่อง)" จากโค้ดใหม่
            if(res.status === "success") {
              Swal.fire('สำเร็จ!', res.message, 'success');
-             loadPendingSwapsList(); // รีเฟรชรายการ Inbox ทันที
+             loadPendingSwapsList(); 
            } else {
              Swal.fire('ข้อผิดพลาด', res.message, 'error');
            }
-        });
+        })
+        .catch(err => Swal.fire('เกิดข้อผิดพลาด', err.message, 'error'));
     }
   });
 }
