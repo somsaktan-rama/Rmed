@@ -936,7 +936,7 @@ document.getElementById('btnSubmitSwap').addEventListener('click', () => {
 });
 
 // ==========================================
-// ระบบดึงคำขอที่เราเป็นคนส่ง (Outgoing Swaps)
+// ระบบดึงคำขอที่เราเป็นคนส่ง (Outgoing Swaps) - เปิดโหมด Debug
 // ==========================================
 function loadOutgoingSwapsList() {
   let currentUid = currentUser.RamaID || currentUser.ramaid || currentUser.id;
@@ -945,16 +945,22 @@ function loadOutgoingSwapsList() {
   const container = document.getElementById('outgoingSwapsContainer');
   const list = document.getElementById('outgoingSwapsList');
   
-  // 🌟 1. เพิ่มตัวเลขสุ่มกันเบราว์เซอร์จำค่าเก่า
-  const timeBuster = new Date().getTime();
+  if (!container || !list) {
+      console.error("❌ หา HTML กล่อง Outgoing ไม่เจอ! (ลืมใส่ใน index.html หรือเปล่า?)");
+      return;
+  }
   
-  // 🌟 2. เติม redirect: 'follow' เข้าไปตรงนี้
+  const timeBuster = new Date().getTime();
+  console.log("กำลังดึงข้อมูล Outgoing ของ UID:", currentUid);
+  
   fetch(`${SCRIPT_URL}?action=check_outgoing_swaps&uid=${currentUid}&t=${timeBuster}`, {
       method: 'GET',
       redirect: 'follow'
   })
     .then(res => res.json())
     .then(res => {
+      console.log("📥 ข้อมูล Outgoing ที่ระบบตอบกลับมา:", res); // ดูว่ามี Data ไหม
+
       if (res.status === "success" && res.data && res.data.length > 0) {
         container.style.display = 'block'; 
         let html = '';
@@ -983,7 +989,7 @@ function loadOutgoingSwapsList() {
         container.style.display = 'none'; 
       }
     })
-    .catch(err => console.log(err));
+    .catch(err => console.error("❌ Fetch Error:", err));
 }
 
 // ฟังก์ชันสำหรับกดยกเลิกคำขอของตัวเอง
