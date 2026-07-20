@@ -222,7 +222,7 @@ function loadDashboard() {
 }
 
 // =====================================
-// 4. SEARCH LOGIC
+// 4. SEARCH LOGIC (ค้นหาตารางเวรตามวันที่ - อัปเดตตัดคำ/เรียงอักษร)
 // =====================================
 document.getElementById('btnSearchSchedule').addEventListener('click', () => {
   const searchDate = document.getElementById('searchDateInput').value;
@@ -231,8 +231,8 @@ document.getElementById('btnSearchSchedule').addEventListener('click', () => {
   Swal.fire({ title: 'กำลังค้นหาข้อมูล...', allowOutsideClick: false, didOpen: () => { Swal.showLoading() }});
 
   fetch(`${SCRIPT_URL}?action=search&date=${searchDate}`, {
-  method: 'GET',
-  redirect: 'follow'
+    method: 'GET',
+    redirect: 'follow'
   })
     .then(response => response.json())
     .then(res => {
@@ -240,6 +240,19 @@ document.getElementById('btnSearchSchedule').addEventListener('click', () => {
       
       Swal.close();
       const data = res.data;
+      
+      // 🌟 1. เพิ่มโค้ดตัดคำว่า R1-, R2-, R3- และจัดเรียงตัวอักษรของเวรนอกเวลา
+      if (data.extraTime && data.extraTime.length > 0) {
+          data.extraTime = data.extraTime.map(item => {
+              if (item.ward) {
+                  item.ward = item.ward.replace(/^(R1|R2|R3)-/i, '').trim();
+              }
+              return item;
+          });
+          
+          data.extraTime.sort((a, b) => a.ward.localeCompare(b.ward, 'th', { numeric: true }));
+      }
+
       currentSearchResults = data; 
       
       document.getElementById('searchResultsContainer').classList.remove('d-none');
@@ -255,11 +268,17 @@ document.getElementById('btnSearchSchedule').addEventListener('click', () => {
 function populateWardFilter(inTimeData, extraData) {
   const select = document.getElementById('filterWardSelect');
   let wards = new Set(); 
-  inTimeData.forEach(item => wards.add(item.ward));
-  extraData.forEach(item => wards.add(item.ward));
+  
+  if (inTimeData) inTimeData.forEach(item => wards.add(item.ward));
+  if (extraData) extraData.forEach(item => wards.add(item.ward));
 
   let options = '<option value="">-- แสดงทุกแผนก / สถานที่ --</option>';
-  Array.from(wards).sort().forEach(w => { options += `<option value="${w}">${w}</option>`; });
+  
+  // 🌟 2. อัปเดตการจัดเรียงใน Dropdown ให้เรียงตัวเลขถูกต้อง (7 -> 8 -> 9)
+  Array.from(wards).sort((a, b) => a.localeCompare(b, 'th', { numeric: true })).forEach(w => { 
+      options += `<option value="${w}">${w}</option>`; 
+  });
+  
   select.innerHTML = options;
 }
 
