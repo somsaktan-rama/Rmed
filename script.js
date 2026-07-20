@@ -398,7 +398,7 @@ document.getElementById('btnSearchConsult').addEventListener('click', () => {
 
 
 // =====================================
-// 6. OVERVIEW DASHBOARD LOGIC (อัปเดตตัดคำนำหน้า R1, R2, R3)
+// 6. OVERVIEW DASHBOARD LOGIC (อัปเดตตัดคำนำหน้า R1, R2, R3 และเรียงลำดับตัวอักษร)
 // =====================================
 let currentOverviewData = null; // เก็บข้อมูลชั่วคราวเพื่อทำ Filter
 
@@ -416,12 +416,19 @@ document.getElementById('btnSearchOverview').addEventListener('click', () => {
     .then(res => {
       if(res.status !== "success") throw new Error(res.message);
       
-      // 🌟 เพิ่มโค้ดส่วนนี้: ตัดคำว่า R1-, R2-, R3- ทิ้ง เพื่อให้จัดกลุ่มแผนกเดียวกันได้
+      // 🌟 ประมวลผลข้อมูลเวรนอกเวลา
       if (res.data && res.data.extraTime) {
+          
+          // 1. ตัดคำว่า R1-, R2-, R3- ทิ้ง
           res.data.extraTime = res.data.extraTime.map(item => {
-              // ใช้ Regular Expression (Regex) หาคำที่ขึ้นต้นด้วย R1-, R2-, R3- (ไม่สนตัวพิมพ์เล็กใหญ่) และแทนที่ด้วยความว่างเปล่า
               item.ward = item.ward.replace(/^(R1|R2|R3)-/i, '').trim();
               return item;
+          });
+          
+          // 🔥 2. เรียงลำดับชื่อสถานที่ (A-Z, ก-ฮ และเรียงตามตัวเลข)
+          res.data.extraTime.sort((a, b) => {
+              // ใช้ localeCompare พร้อม {numeric: true} เพื่อให้เลข 7 มาก่อน 8, 9
+              return a.ward.localeCompare(b.ward, 'th', { numeric: true });
           });
       }
       
