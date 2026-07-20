@@ -945,7 +945,14 @@ function loadOutgoingSwapsList() {
   const container = document.getElementById('outgoingSwapsContainer');
   const list = document.getElementById('outgoingSwapsList');
   
-  fetch(`${SCRIPT_URL}?action=check_outgoing_swaps&uid=${currentUid}`)
+  // 🌟 1. เพิ่มตัวเลขสุ่มกันเบราว์เซอร์จำค่าเก่า
+  const timeBuster = new Date().getTime();
+  
+  // 🌟 2. เติม redirect: 'follow' เข้าไปตรงนี้
+  fetch(`${SCRIPT_URL}?action=check_outgoing_swaps&uid=${currentUid}&t=${timeBuster}`, {
+      method: 'GET',
+      redirect: 'follow'
+  })
     .then(res => res.json())
     .then(res => {
       if (res.status === "success" && res.data && res.data.length > 0) {
