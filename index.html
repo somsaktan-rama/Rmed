@@ -2,7 +2,7 @@
 <html lang="th">
 <head>
   <meta charset="UTF-8">
-  <title>MedRama Schedule 1.09</title>
+  <title>MedRama Schedule 1.10</title>
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0">
   <link rel="icon" href="favicon.ico" type="image/x-icon">
   <!-- Flatpickr CSS -->
@@ -184,7 +184,19 @@
               </ul>
             </div>
           </div>
-                    
+
+          <!-- 🔥 กล่องใหม่: คำขอที่คุณส่งไป (รออนุมัติ) 🔥 -->
+          <div class="card shadow-sm mb-4 border-start border-warning border-4" id="outgoingSwapsContainer" style="display: none;">
+            <div class="card-header bg-white fw-bold text-dark">
+              <i class="bi bi-send-fill text-warning me-2"></i>คำขอที่คุณส่งไป (รอเพื่อนอนุมัติ)
+            </div>
+            <div class="card-body p-0">
+              <ul class="list-group list-group-flush" id="outgoingSwapsList">
+                <!-- ข้อมูลคำขอที่เราส่งไป จะถูกดึงมาใส่ตรงนี้ -->
+              </ul>
+            </div>
+          </div>
+          
           <!-- ฟอร์มขอแลกเวรแบบใหม่ (Step-by-Step) -->
           <div class="card shadow-sm">
             <div class="card-body">
