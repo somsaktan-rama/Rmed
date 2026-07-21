@@ -1143,7 +1143,9 @@ document.getElementById('btnSearchDir').addEventListener('click', () => {
               </div>
             </li>
           `;
-      });
-    }) // <--- จุดที่มักจะหายไปคือปีกกาปิดตรงนี้ครับ
+      }); // 1. ปิดของ res.data.forEach(user => {
+
+    }) // 🌟 2. จุดนี้คือตัวปิดของ .then(res => { ที่เปิดไว้บรรทัด 1106 ครับ
     .catch(err => Swal.fire('ข้อผิดพลาด', err.message, 'error'));
-});
+
+}); // 3. ปิดของ document.getElementById(...).addEventListener('click', () => {
