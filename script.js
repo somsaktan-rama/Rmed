@@ -1158,3 +1158,115 @@ document.getElementById('btnSearchDir').addEventListener('click', () => {
     }) // ปิด then
     .catch(err => Swal.fire('ข้อผิดพลาด', err.message, 'error'));
 }); // ปิด addEventListener
+
+// =====================================
+// ฟังก์ชันจัดการหน้าค้นหาบุคลากร (Directory) แบบใหม่
+// =====================================
+
+// 1. ฟังก์ชันโหลดตัวเลือก Code ใส่ Dropdown
+function loadDirectoryCodes() {
+    const select = document.getElementById('dirCodeSelect');
+    if (!select) return;
+
+    fetch(`${SCRIPT_URL}?action=get_code_list`, { method: 'GET', redirect: 'follow' })
+      .then(response => response.json())
+      .then(res => {
+          if (res.status === "success" && res.data) {
+              let options = '<option value="">-- หรือเลือกค้นหาจากกลุ่ม Code --</option>';
+              res.data.forEach(code => {
+                  options += `<option value="${code}">${code}</option>`;
+              });
+              select.innerHTML = options;
+          }
+      })
+      .catch(err => console.error("ไม่สามารถโหลดรายชื่อ Code ได้", err));
+}
+
+// 2. จับ Event เมื่อมีการเลือก Dropdown Code
+document.getElementById('dirCodeSelect').addEventListener('change', (e) => {
+    const selectedCode = e.target.value;
+    if (selectedCode) {
+        // ล้างช่องค้นหาชื่อออก เพื่อไม่ให้งง
+        document.getElementById('dirSearchInput').value = ""; 
+        // สั่งค้นหาด้วย Code นั้นทันที
+        executeDirectorySearch(selectedCode); 
+    }
+});
+
+// 3. จับ Event ปุ่มค้นหาด้วยชื่อ
+document.getElementById('btnSearchDir').addEventListener('click', () => {
+    const keyword = document.getElementById('dirSearchInput').value.trim();
+    if (keyword) {
+        // รีเซ็ต Dropdown กลับไปค่าเริ่มต้น เพื่อไม่ให้งง
+        document.getElementById('dirCodeSelect').value = "";
+        // สั่งค้นหาด้วยชื่อทันที
+        executeDirectorySearch(keyword);
+    } else {
+        Swal.fire('แจ้งเตือน', 'กรุณาพิมพ์ชื่อที่ต้องการค้นหา', 'warning');
+    }
+});
+
+// 4. ฟังก์ชันหลักสำหรับดึงและวาดข้อมูล (แยกออกมาเพื่อเรียกใช้ซ้ำได้)
+function executeDirectorySearch(keyword) {
+    Swal.fire({ title: 'กำลังค้นหาประวัติ...', allowOutsideClick: false, didOpen: () => { Swal.showLoading() }});
+
+    fetch(`${SCRIPT_URL}?action=search_directory&keyword=${encodeURIComponent(keyword)}`, {
+        method: 'GET',
+        redirect: 'follow'
+    })
+    .then(response => response.json())
+    .then(res => {
+        if(res.status !== "success") throw new Error(res.message);
+        Swal.close();
+        
+        const container = document.getElementById('dirResultContainer');
+        const list = document.getElementById('dirResultList');
+        container.classList.remove('d-none');
+        list.innerHTML = '';
+        
+        if(res.data.length === 0) {
+            list.innerHTML = '<li class="list-group-item text-muted text-center">ไม่พบข้อมูลบุคลากร</li>';
+            return;
+        }
+        
+        res.data.forEach(user => {
+            let role = user.role || "ไม่ระบุตำแหน่ง";
+            let codeBadge = user.code ? `<span class="badge bg-info text-dark ms-2"><i class="bi bi-tag-fill"></i> ${user.code}</span>` : "";
+            let email = user.email ? `<span class="ms-3"><a href="mailto:${user.email}" class="text-decoration-none text-muted"><i class="bi bi-envelope-fill text-warning"></i> ${user.email}</a></span>` : "";
+            
+            let btnMobile = user.mobile ? `<a href="tel:${user.mobile}" class="btn btn-sm btn-success rounded-pill px-3 shadow-sm me-1 mb-1 fw-bold"><i class="bi bi-telephone-fill"></i> Mobile: ${user.mobile}</a> ` : "";
+            let btnPct = user.pct ? `<a href="tel:022011000,${user.pct}" class="btn btn-sm btn-primary rounded-pill px-3 shadow-sm me-1 mb-1 fw-bold"><i class="bi bi-telephone-outbound"></i> PCT: ${user.pct}</a> ` : "";
+            let btnPct10 = user.pct10 ? `<a href="tel:${user.pct10}" class="btn btn-sm btn-danger rounded-pill px-3 shadow-sm me-1 mb-1 fw-bold"><i class="bi bi-phone-vibrate-fill"></i> PCT10: ${user.pct10}</a> ` : "";
+            
+            let phoneSection = (btnMobile || btnPct || btnPct10) 
+                ? `<div class="mt-2">${btnMobile}${btnPct}${btnPct10}</div>` 
+                : `<div class="text-muted small mt-2">ไม่มีข้อมูลติดต่อ</div>`;
+
+            list.innerHTML += `
+              <li class="list-group-item bg-light mb-2 rounded shadow-sm border-0">
+                <div class="d-flex justify-content-between align-items-center mb-1">
+                  <strong class="text-primary fs-5">${user.name}</strong>
+                  <div>
+                      <span class="badge bg-secondary">${role}</span>
+                      ${codeBadge}
+                  </div>
+                </div>
+                <div class="small text-muted mb-1">
+                  <i class="bi bi-building me-1 text-info"></i> สังกัด: ${user.department || "-"}
+                  ${email}
+                </div>
+                ${phoneSection}
+              </li>
+            `;
+        });
+    })
+    .catch(err => Swal.fire('ข้อผิดพลาด', err.message, 'error'));
+}
+
+// 🌟 สั่งให้โหลดรายชื่อ Code ทันทีเมื่อผู้ใช้ล็อกอินสำเร็จ
+// (แนะนำให้นำบรรทัด `loadDirectoryCodes();` ไปใส่ต่อท้ายในฟังก์ชัน showAppMain() ของฝั่ง Staff ด้วยครับ แต่ถ้าใส่ไว้ตรงนี้มันก็จะทำงานตอนโหลดหน้าเว็บเช่นกัน)
+document.addEventListener("DOMContentLoaded", function() {
+    // ให้รอจนกว่าแอปจะโหลดเสร็จ
+    setTimeout(loadDirectoryCodes, 2000); 
+});
+
