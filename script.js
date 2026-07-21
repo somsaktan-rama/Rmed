@@ -104,42 +104,40 @@ function showAppMain() {
   let isResidentOrFellow = userRoleUpper.startsWith('R') || userRoleUpper.startsWith('F');
   
   if (isResidentOrFellow) {
-    // 🌟 กลุ่ม R และ F: ปิดหน้า Overview, โชว์แท็บทำงานทั้งหมด
+    // 🌟 กลุ่ม R และ F: ปิดหน้า Overview, โชว์แท็บทำงานที่เหลือ
     if (document.getElementById('tab-overview')) {
         document.getElementById('tab-overview').parentElement.classList.add('d-none');
     }
-    document.getElementById('tab-dashboard').parentElement.classList.remove('d-none');
-    document.getElementById('tab-search').parentElement.classList.remove('d-none');
-    document.getElementById('tab-consult').parentElement.classList.remove('d-none');
-    document.getElementById('tab-swap').parentElement.classList.remove('d-none');
-    
-    // บังคับไปที่หน้า Dashboard เป็นหน้าแรกของ R และ F
-    document.getElementById('tab-dashboard').click();
+    if (document.getElementById('tab-dashboard')) {
+        document.getElementById('tab-dashboard').parentElement.classList.remove('d-none');
+        document.getElementById('tab-dashboard').click();
+    }
+    if (document.getElementById('tab-swap')) {
+        document.getElementById('tab-swap').parentElement.classList.remove('d-none');
+    }
     
     // โหลดข้อมูล Dashboard
     initDatePicker();
     loadDashboard();
     
   } else {
-    // 🌟 กลุ่มอื่นๆ (Staff): โชว์หน้า Overview
+    // 🌟 กลุ่มอื่นๆ (Staff): โชว์หน้า Overview, ปิดหน้า Dashboard/แลกเวร
     if (document.getElementById('tab-overview')) {
         document.getElementById('tab-overview').parentElement.classList.remove('d-none');
+        document.getElementById('tab-overview').click();
     }
-    document.getElementById('tab-dashboard').parentElement.classList.add('d-none');
-    document.getElementById('tab-swap').parentElement.classList.add('d-none');
-    
-    // หน้า Search และ Consult สามารถเปิดทิ้งไว้ให้ Staff ดูได้
-    document.getElementById('tab-search').parentElement.classList.remove('d-none');
-    document.getElementById('tab-consult').parentElement.classList.remove('d-none');
-    
-    // บังคับไปที่หน้า Overview เป็นหน้าแรกของ Staff
-    document.getElementById('tab-overview').click();
+    if (document.getElementById('tab-dashboard')) {
+        document.getElementById('tab-dashboard').parentElement.classList.add('d-none');
+    }
+    if (document.getElementById('tab-swap')) {
+        document.getElementById('tab-swap').parentElement.classList.add('d-none');
+    }
     
     // 🌟 ตั้งค่า Default ให้ช่องค้นหาเป็น "วันที่ของวันนี้"
     const today = new Date();
     const offset = today.getTimezoneOffset();
     const localDate = new Date(today.getTime() - (offset * 60 * 1000));
-    const todayStr = localDate.toISOString().split('T')[0]; // จะได้ YYYY-MM-DD
+    const todayStr = localDate.toISOString().split('T')[0]; 
     
     const overviewDateInput = document.getElementById('overviewDateInput');
     if (overviewDateInput) {
@@ -150,7 +148,7 @@ function showAppMain() {
     const btnOverview = document.getElementById('btnSearchOverview');
     if(btnOverview) btnOverview.click();
   }
-} // <--- 🌟 ตรงนี้คือปีกกาปิดที่หายไปครับ 🌟
+}
 
 // =====================================
 // 2. DATE PICKER (Flatpickr)
