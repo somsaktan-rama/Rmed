@@ -122,26 +122,35 @@ function showAppMain() {
     initDatePicker();
     loadDashboard();
     
-  } else {
-    // 🌟 กลุ่มอื่นๆ (Staff): โชว์หน้า Overview, ปิดหน้า Dashboard/แลกเวร
+} else {
+    // 🌟 กลุ่มอื่นๆ (Staff): โชว์หน้า Overview
     if (document.getElementById('tab-overview')) {
         document.getElementById('tab-overview').parentElement.classList.remove('d-none');
     }
     document.getElementById('tab-dashboard').parentElement.classList.add('d-none');
     document.getElementById('tab-swap').parentElement.classList.add('d-none');
     
-    // หน้า Search และ Consult สามารถเปิดทิ้งไว้ให้ Staff ดูได้ (ถ้าอยากซ่อนด้วยให้เปลี่ยนเป็น add('d-none'))
     document.getElementById('tab-search').parentElement.classList.remove('d-none');
     document.getElementById('tab-consult').parentElement.classList.remove('d-none');
     
-    // บังคับไปที่หน้า Overview เป็นหน้าแรกของ Staff
     document.getElementById('tab-overview').click();
+    
+    // 🌟 ตั้งค่า Default ให้ช่องค้นหาเป็น "วันที่ของวันนี้"
+    const today = new Date();
+    // ปรับ Timezone เป็นเวลาไทยเพื่อความแม่นยำ
+    const offset = today.getTimezoneOffset();
+    const localDate = new Date(today.getTime() - (offset * 60 * 1000));
+    const todayStr = localDate.toISOString().split('T')[0]; // จะได้ YYYY-MM-DD
+    
+    const overviewDateInput = document.getElementById('overviewDateInput');
+    if (overviewDateInput) {
+        overviewDateInput.value = todayStr;
+    }
     
     // สั่งให้กดปุ่มค้นหาวันนี้ในหน้า Overview อัตโนมัติ
     const btnOverview = document.getElementById('btnSearchOverview');
     if(btnOverview) btnOverview.click();
   }
-}
 
 // =====================================
 // 2. DATE PICKER (Flatpickr)
@@ -1117,16 +1126,20 @@ document.getElementById('btnSearchDir').addEventListener('click', () => {
           return;
       }
       
-      res.data.forEach(user => {
-          // ดักค่าว่าง
+ res.data.forEach(user => {
           let role = user.role || "ไม่ระบุตำแหน่ง";
-          
-          // 🌟 เพิ่มป้ายแสดง Code (ถ้ามี)
           let codeBadge = user.code ? `<span class="badge bg-info text-dark ms-2"><i class="bi bi-tag-fill"></i> ${user.code}</span>` : "";
+          let email = user.email ? `<span class="ms-3"><a href="mailto:${user.email}" class="text-decoration-none text-muted"><i class="bi bi-envelope-fill text-warning"></i> ${user.email}</a></span>` : "";
           
-          let mobile = user.mobile ? `<a href="tel:${user.mobile}" class="text-decoration-none">${user.mobile}</a>` : "-";
-          let email = user.email ? `<a href="mailto:${user.email}" class="text-decoration-none">${user.email}</a>` : "-";
+          // 🌟 สร้างปุ่มโทรศัพท์ 3 สี ตามที่ขอครับ (เขียว, น้ำเงิน, แดง)
+          let btnMobile = user.mobile ? `<a href="tel:${user.mobile}" class="btn btn-sm btn-success rounded-pill px-3 shadow-sm me-1 mb-1 fw-bold"><i class="bi bi-telephone-fill"></i> Mobile: ${user.mobile}</a> ` : "";
+          let btnPct = user.pct ? `<a href="tel:022011000,${user.pct}" class="btn btn-sm btn-primary rounded-pill px-3 shadow-sm me-1 mb-1 fw-bold"><i class="bi bi-telephone-outbound"></i> PCT: ${user.pct}</a> ` : "";
+          let btnPct10 = user.pct10 ? `<a href="tel:${user.pct10}" class="btn btn-sm btn-danger rounded-pill px-3 shadow-sm me-1 mb-1 fw-bold"><i class="bi bi-phone-vibrate-fill"></i> PCT10: ${user.pct10}</a> ` : "";
           
+          let phoneSection = (btnMobile || btnPct || btnPct10) 
+              ? `<div class="mt-2">${btnMobile}${btnPct}${btnPct10}</div>` 
+              : `<div class="text-muted small mt-2">ไม่มีข้อมูลติดต่อ</div>`;
+
           list.innerHTML += `
             <li class="list-group-item bg-light mb-2 rounded shadow-sm border-0">
               <div class="d-flex justify-content-between align-items-center mb-1">
@@ -1136,16 +1149,14 @@ document.getElementById('btnSearchDir').addEventListener('click', () => {
                     ${codeBadge}
                 </div>
               </div>
-              <div class="text-muted small">
-                <div><i class="bi bi-telephone-fill me-1 text-success"></i> ${mobile}</div>
-                <div><i class="bi bi-envelope-fill me-1 text-warning"></i> ${email}</div>
-                <div><i class="bi bi-building me-1 text-info"></i> สังกัด: ${user.department || "-"} (PCT: ${user.pct || "-"})</div>
+              <div class="small text-muted mb-1">
+                <i class="bi bi-building me-1 text-info"></i> สังกัด: ${user.department || "-"}
+                ${email}
               </div>
+              ${phoneSection}
             </li>
           `;
-      }); // 1. ปิดของ res.data.forEach(user => {
-
-    }) // 🌟 2. จุดนี้คือตัวปิดของ .then(res => { ที่เปิดไว้บรรทัด 1106 ครับ
+      }); // ปิด forEach
+    }) // ปิด then
     .catch(err => Swal.fire('ข้อผิดพลาด', err.message, 'error'));
-
-}); // 3. ปิดของ document.getElementById(...).addEventListener('click', () => {
+}); // ปิด addEventListener
