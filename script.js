@@ -1126,7 +1126,7 @@ document.getElementById('btnSearchDir').addEventListener('click', () => {
           return;
       }
       
- res.data.forEach(user => {
+       res.data.forEach(user => {
           let role = user.role || "ไม่ระบุตำแหน่ง";
           let codeBadge = user.code ? `<span class="badge bg-info text-dark ms-2"><i class="bi bi-tag-fill"></i> ${user.code}</span>` : "";
           let email = user.email ? `<span class="ms-3"><a href="mailto:${user.email}" class="text-decoration-none text-muted"><i class="bi bi-envelope-fill text-warning"></i> ${user.email}</a></span>` : "";
