@@ -97,28 +97,50 @@ function showAppMain() {
       
   document.getElementById('displayUserName').innerHTML = `${navName} (${navRole}) ${pctHtml}`;
   
+  // ===============================================
   // --- ระบบจัดการสิทธิ์ (Permission Control) ---
+  // ===============================================
   let userRoleUpper = navRole.toUpperCase().trim();
-  let allowedRoles = ["R1", "R2", "R3"];
   
-  if (!allowedRoles.includes(userRoleUpper)) {
-    document.getElementById('tab-dashboard').parentElement.classList.add('d-none');
-    document.getElementById('tab-search').parentElement.classList.add('d-none');
-    document.getElementById('tab-consult').parentElement.classList.add('d-none');
-    document.getElementById('tab-swap').parentElement.classList.add('d-none');
-    document.getElementById('tab-overview').click();
-  } else {
+  // เช็คว่า Role ขึ้นต้นด้วย R หรือ F หรือไม่ (ครอบคลุม R1-3, F1-2)
+  let isResidentOrFellow = userRoleUpper.startsWith('R') || userRoleUpper.startsWith('F');
+  
+  if (isResidentOrFellow) {
+    // 🌟 กลุ่ม R และ F: ปิดหน้า Overview, โชว์แท็บทำงานทั้งหมด
+    if (document.getElementById('tab-overview')) {
+        document.getElementById('tab-overview').parentElement.classList.add('d-none');
+    }
     document.getElementById('tab-dashboard').parentElement.classList.remove('d-none');
     document.getElementById('tab-search').parentElement.classList.remove('d-none');
     document.getElementById('tab-consult').parentElement.classList.remove('d-none');
     document.getElementById('tab-swap').parentElement.classList.remove('d-none');
+    
+    // บังคับไปที่หน้า Dashboard เป็นหน้าแรกของ R และ F
+    document.getElementById('tab-dashboard').click();
+    
+    // โหลดข้อมูล Dashboard
+    initDatePicker();
+    loadDashboard();
+    
+  } else {
+    // 🌟 กลุ่มอื่นๆ (Staff): โชว์หน้า Overview, ปิดหน้า Dashboard/แลกเวร
+    if (document.getElementById('tab-overview')) {
+        document.getElementById('tab-overview').parentElement.classList.remove('d-none');
+    }
+    document.getElementById('tab-dashboard').parentElement.classList.add('d-none');
+    document.getElementById('tab-swap').parentElement.classList.add('d-none');
+    
+    // หน้า Search และ Consult สามารถเปิดทิ้งไว้ให้ Staff ดูได้ (ถ้าอยากซ่อนด้วยให้เปลี่ยนเป็น add('d-none'))
+    document.getElementById('tab-search').parentElement.classList.remove('d-none');
+    document.getElementById('tab-consult').parentElement.classList.remove('d-none');
+    
+    // บังคับไปที่หน้า Overview เป็นหน้าแรกของ Staff
+    document.getElementById('tab-overview').click();
+    
+    // สั่งให้กดปุ่มค้นหาวันนี้ในหน้า Overview อัตโนมัติ
+    const btnOverview = document.getElementById('btnSearchOverview');
+    if(btnOverview) btnOverview.click();
   }
-
-  initDatePicker();
-  loadDashboard();
-
-  const btnOverview = document.getElementById('btnSearchOverview');
-  if(btnOverview) btnOverview.click();
 }
 
 // =====================================
@@ -1067,4 +1089,55 @@ window.cancelOutgoingSwap = function(reqId) {
     }
   });
 }
+
+// =====================================
+// ฟังก์ชันค้นหารายชื่อบุคลากร (Directory)
+// =====================================
+document.getElementById('btnSearchDir').addEventListener('click', () => {
+  const keyword = document.getElementById('dirSearchInput').value.trim();
+  
+  Swal.fire({ title: 'กำลังค้นหาประวัติ...', allowOutsideClick: false, didOpen: () => { Swal.showLoading() }});
+
+  fetch(`${SCRIPT_URL}?action=search_directory&keyword=${encodeURIComponent(keyword)}`, {
+    method: 'GET',
+    redirect: 'follow'
+  })
+    .then(response => response.json())
+    .then(res => {
+      if(res.status !== "success") throw new Error(res.message);
+      Swal.close();
+      
+      const container = document.getElementById('dirResultContainer');
+      const list = document.getElementById('dirResultList');
+      container.classList.remove('d-none');
+      list.innerHTML = '';
+      
+      if(res.data.length === 0) {
+          list.innerHTML = '<li class="list-group-item text-muted text-center">ไม่พบชื่อบุคลากรนี้</li>';
+          return;
+      }
+      
+      res.data.forEach(user => {
+          // ดักค่าว่าง
+          let role = user.role || "ไม่ระบุตำแหน่ง";
+          let mobile = user.mobile ? `<a href="tel:${user.mobile}" class="text-decoration-none">${user.mobile}</a>` : "-";
+          let email = user.email ? `<a href="mailto:${user.email}" class="text-decoration-none">${user.email}</a>` : "-";
+          
+          list.innerHTML += `
+            <li class="list-group-item bg-light mb-2 rounded shadow-sm border-0">
+              <div class="d-flex justify-content-between align-items-center mb-1">
+                <strong class="text-primary fs-5">${user.name}</strong>
+                <span class="badge bg-secondary">${role}</span>
+              </div>
+              <div class="text-muted small">
+                <div><i class="bi bi-telephone-fill me-1 text-success"></i> ${mobile}</div>
+                <div><i class="bi bi-envelope-fill me-1 text-warning"></i> ${email}</div>
+                <div><i class="bi bi-building me-1 text-info"></i> สังกัด: ${user.department || "-"} (PCT: ${user.pct || "-"})</div>
+              </div>
+            </li>
+          `;
+      });
+    })
+    .catch(err => Swal.fire('ข้อผิดพลาด', err.message, 'error'));
+});
 
