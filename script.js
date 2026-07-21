@@ -88,7 +88,7 @@ function showAppMain() {
   
   let navName = currentUser.Name || currentUser.name || "ไม่ระบุชื่อ";
   let navRole = currentUser.RoleYear || currentUser.roleyear || "";
-  let navPct = currentUser.PCT || currentUser.pct || ""; // ดึงเบอร์ของตัวเอง
+  let navPct = currentUser.PCT || currentUser.pct || ""; 
   
   // สร้างปุ่มเบอร์ตัวเอง (ถ้ามี)
   let pctHtml = (navPct && navPct.toString().trim() !== "") 
@@ -101,8 +101,6 @@ function showAppMain() {
   // --- ระบบจัดการสิทธิ์ (Permission Control) ---
   // ===============================================
   let userRoleUpper = navRole.toUpperCase().trim();
-  
-  // เช็คว่า Role ขึ้นต้นด้วย R หรือ F หรือไม่ (ครอบคลุม R1-3, F1-2)
   let isResidentOrFellow = userRoleUpper.startsWith('R') || userRoleUpper.startsWith('F');
   
   if (isResidentOrFellow) {
@@ -122,7 +120,7 @@ function showAppMain() {
     initDatePicker();
     loadDashboard();
     
-} else {
+  } else {
     // 🌟 กลุ่มอื่นๆ (Staff): โชว์หน้า Overview
     if (document.getElementById('tab-overview')) {
         document.getElementById('tab-overview').parentElement.classList.remove('d-none');
@@ -130,14 +128,15 @@ function showAppMain() {
     document.getElementById('tab-dashboard').parentElement.classList.add('d-none');
     document.getElementById('tab-swap').parentElement.classList.add('d-none');
     
+    // หน้า Search และ Consult สามารถเปิดทิ้งไว้ให้ Staff ดูได้
     document.getElementById('tab-search').parentElement.classList.remove('d-none');
     document.getElementById('tab-consult').parentElement.classList.remove('d-none');
     
+    // บังคับไปที่หน้า Overview เป็นหน้าแรกของ Staff
     document.getElementById('tab-overview').click();
     
     // 🌟 ตั้งค่า Default ให้ช่องค้นหาเป็น "วันที่ของวันนี้"
     const today = new Date();
-    // ปรับ Timezone เป็นเวลาไทยเพื่อความแม่นยำ
     const offset = today.getTimezoneOffset();
     const localDate = new Date(today.getTime() - (offset * 60 * 1000));
     const todayStr = localDate.toISOString().split('T')[0]; // จะได้ YYYY-MM-DD
@@ -151,6 +150,7 @@ function showAppMain() {
     const btnOverview = document.getElementById('btnSearchOverview');
     if(btnOverview) btnOverview.click();
   }
+} // <--- 🌟 ตรงนี้คือปีกกาปิดที่หายไปครับ 🌟
 
 // =====================================
 // 2. DATE PICKER (Flatpickr)
