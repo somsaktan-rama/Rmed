@@ -1091,7 +1091,7 @@ window.cancelOutgoingSwap = function(reqId) {
 }
 
 // =====================================
-// ฟังก์ชันค้นหารายชื่อบุคลากร (Directory)
+// ฟังก์ชันค้นหารายชื่อบุคลากร (Directory) แบบสมบูรณ์
 // =====================================
 document.getElementById('btnSearchDir').addEventListener('click', () => {
   const keyword = document.getElementById('dirSearchInput').value.trim();
@@ -1117,9 +1117,10 @@ document.getElementById('btnSearchDir').addEventListener('click', () => {
           return;
       }
       
-res.data.forEach(user => {
+      res.data.forEach(user => {
           // ดักค่าว่าง
           let role = user.role || "ไม่ระบุตำแหน่ง";
+          
           // 🌟 เพิ่มป้ายแสดง Code (ถ้ามี)
           let codeBadge = user.code ? `<span class="badge bg-info text-dark ms-2"><i class="bi bi-tag-fill"></i> ${user.code}</span>` : "";
           
@@ -1143,3 +1144,6 @@ res.data.forEach(user => {
             </li>
           `;
       });
+    }) // <--- จุดที่มักจะหายไปคือปีกกาปิดตรงนี้ครับ
+    .catch(err => Swal.fire('ข้อผิดพลาด', err.message, 'error'));
+});
