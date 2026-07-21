@@ -1117,9 +1117,12 @@ document.getElementById('btnSearchDir').addEventListener('click', () => {
           return;
       }
       
-      res.data.forEach(user => {
+res.data.forEach(user => {
           // ดักค่าว่าง
           let role = user.role || "ไม่ระบุตำแหน่ง";
+          // 🌟 เพิ่มป้ายแสดง Code (ถ้ามี)
+          let codeBadge = user.code ? `<span class="badge bg-info text-dark ms-2"><i class="bi bi-tag-fill"></i> ${user.code}</span>` : "";
+          
           let mobile = user.mobile ? `<a href="tel:${user.mobile}" class="text-decoration-none">${user.mobile}</a>` : "-";
           let email = user.email ? `<a href="mailto:${user.email}" class="text-decoration-none">${user.email}</a>` : "-";
           
@@ -1127,7 +1130,10 @@ document.getElementById('btnSearchDir').addEventListener('click', () => {
             <li class="list-group-item bg-light mb-2 rounded shadow-sm border-0">
               <div class="d-flex justify-content-between align-items-center mb-1">
                 <strong class="text-primary fs-5">${user.name}</strong>
-                <span class="badge bg-secondary">${role}</span>
+                <div>
+                    <span class="badge bg-secondary">${role}</span>
+                    ${codeBadge}
+                </div>
               </div>
               <div class="text-muted small">
                 <div><i class="bi bi-telephone-fill me-1 text-success"></i> ${mobile}</div>
@@ -1137,7 +1143,3 @@ document.getElementById('btnSearchDir').addEventListener('click', () => {
             </li>
           `;
       });
-    })
-    .catch(err => Swal.fire('ข้อผิดพลาด', err.message, 'error'));
-});
-
