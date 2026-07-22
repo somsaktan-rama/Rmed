@@ -112,8 +112,12 @@ function showAppMain() {
       overviewDateInput.value = todayStr;
   }
   
+  // 🌟 อ้างอิงกล่องค้นหาบุคลากรในหน้า Overview
+  const directoryContainer = document.getElementById('directoryContainer');
+  
   if (isResidentOrFellow) {
-    // 🌟 กลุ่ม R และ F: โชว์แท็บ Dashboard, Overview, และ Swap
+    // 🌟 กลุ่ม R และ F: 
+    // 1. โชว์แท็บ Dashboard, Overview, และ Swap
     if (document.getElementById('tab-overview')) {
         document.getElementById('tab-overview').parentElement.classList.remove('d-none');
     }
@@ -125,12 +129,18 @@ function showAppMain() {
         document.getElementById('tab-swap').parentElement.classList.remove('d-none');
     }
     
+    // 2. 🌟 ซ่อนกล่องค้นหาบุคลากรในหน้า Overview ทิ้งไป
+    if (directoryContainer) {
+        directoryContainer.classList.add('d-none');
+    }
+    
     // โหลดข้อมูลเวรของตัวเอง
     initDatePicker();
     loadDashboard();
     
   } else {
-    // 🌟 กลุ่มอื่นๆ (Staff): โชว์เฉพาะ Overview, ปิดหน้า Dashboard และ Swap
+    // 🌟 กลุ่มอื่นๆ (Staff): 
+    // 1. โชว์เฉพาะ Overview, ปิดหน้า Dashboard และ Swap
     if (document.getElementById('tab-overview')) {
         document.getElementById('tab-overview').parentElement.classList.remove('d-none');
         document.getElementById('tab-overview').click(); // บังคับเด้งไปหน้าสรุปเวร
@@ -140,6 +150,11 @@ function showAppMain() {
     }
     if (document.getElementById('tab-swap')) {
         document.getElementById('tab-swap').parentElement.classList.add('d-none');
+    }
+    
+    // 2. 🌟 แสดงกล่องค้นหาบุคลากรให้ Staff ใช้งาน
+    if (directoryContainer) {
+        directoryContainer.classList.remove('d-none');
     }
     
     // สั่งให้โหลดสรุปเวรของวันนี้อัตโนมัติ
