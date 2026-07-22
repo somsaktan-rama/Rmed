@@ -190,7 +190,7 @@ function initDatePicker() {
 }
 
 // =====================================
-// 3. DASHBOARD LOGIC (อัปเดตให้แสดงเฉพาะเวรตั้งแต่วันนี้เป็นต้นไป)
+// 3. DASHBOARD LOGIC (แสดงเวรตั้งแต่วันนี้เป็นต้นไป แบบไม่จำกัดจำนวน พร้อม Scrollbar)
 // =====================================
 function loadDashboard() {
   document.getElementById('currRotationContent').innerHTML = '<div class="spinner-border spinner-border-sm text-primary" role="status"></div> กำลังดึงข้อมูล...';
@@ -198,7 +198,6 @@ function loadDashboard() {
 
   let rId = currentUser.RamaID || currentUser.ramaid;
 
-  // ใช้ fetch() แทน google.script.run
   fetch(`${SCRIPT_URL}?action=dashboard&ramaId=${rId}`, {
   method: 'GET',
   redirect: 'follow'
@@ -222,24 +221,24 @@ function loadDashboard() {
       }
 
       // ==========================================
-      // 🌟 2. ลอจิกกรองวันเวลา (แสดงเฉพาะวันนี้เป็นต้นไป)
+      // 2. ลอจิกกรองวันเวลา (แสดงเฉพาะวันนี้เป็นต้นไป ทั้งหมดไม่จำกัด)
       // ==========================================
       const today = new Date();
-      today.setHours(0, 0, 0, 0); // ตัดเรื่องเวลาทิ้ง ให้เทียบแค่วันที่
+      today.setHours(0, 0, 0, 0); 
 
-      // กรองเอาเฉพาะเวรที่วันที่ >= วันนี้
       const upcomingShifts = (data.extraShifts || []).filter(shift => {
-          // สร้างวันที่จากข้อมูล (เดือนใน JavaScript เริ่มนับจาก 0 จึงต้องเอา - 1)
           const shiftDate = new Date(shift.year, shift.month - 1, shift.day);
           return shiftDate >= today;
       });
 
-      // 3. วาดข้อมูลเวรนอกเวลา (เปลี่ยนมาใช้ upcomingShifts แทน extraShifts)
+      // 3. วาดข้อมูลเวรนอกเวลา
       if (upcomingShifts.length === 0) {
         let debugName = data.currentRotationInfo ? data.currentRotationInfo.debugName : "";
         document.getElementById('extraShiftsContent').innerHTML = `<div class="alert alert-light border text-center text-success mb-0">ไม่มีเวรนอกเวลาในระบบ <br><small class="text-muted">(ตรวจสอบชีต extra ว่ามีคำว่า "${debugName}" หรือไม่)</small></div>`;
       } else {
-        let shiftHtml = '<div class="list-group">';
+        // 🌟 เพิ่ม style="max-height: 400px; overflow-y: auto;" เพื่อให้เลื่อนดูได้ถ้ารายการเยอะเกินไป
+        let shiftHtml = '<div class="list-group" style="max-height: 400px; overflow-y: auto; scrollbar-width: thin;">';
+        
         upcomingShifts.forEach(shift => {
           let d = shift.day.toString().padStart(2, '0');
           let m = shift.month.toString().padStart(2, '0');
