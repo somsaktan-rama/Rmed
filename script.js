@@ -90,7 +90,6 @@ function showAppMain() {
   let navRole = currentUser.RoleYear || currentUser.roleyear || "";
   let navPct = currentUser.PCT || currentUser.pct || ""; 
   
-  // สร้างปุ่มเบอร์ตัวเอง (ถ้ามี)
   let pctHtml = (navPct && navPct.toString().trim() !== "") 
       ? `<a href="tel:022011000,${navPct.toString().trim()}" class="badge bg-success text-decoration-none ms-2"><i class="bi bi-telephone-outbound"></i> ${navPct}</a>` 
       : "";
@@ -103,28 +102,38 @@ function showAppMain() {
   let userRoleUpper = navRole.toUpperCase().trim();
   let isResidentOrFellow = userRoleUpper.startsWith('R') || userRoleUpper.startsWith('F');
   
+  // เตรียมวันที่ปัจจุบันไว้ใส่ในช่องค้นหา Overview
+  const today = new Date();
+  const offset = today.getTimezoneOffset();
+  const localDate = new Date(today.getTime() - (offset * 60 * 1000));
+  const todayStr = localDate.toISOString().split('T')[0]; 
+  const overviewDateInput = document.getElementById('overviewDateInput');
+  if (overviewDateInput) {
+      overviewDateInput.value = todayStr;
+  }
+  
   if (isResidentOrFellow) {
-    // 🌟 กลุ่ม R และ F: ปิดหน้า Overview, โชว์แท็บทำงานที่เหลือ
+    // 🌟 กลุ่ม R และ F: โชว์แท็บ Dashboard, Overview, และ Swap
     if (document.getElementById('tab-overview')) {
-        document.getElementById('tab-overview').parentElement.classList.add('d-none');
+        document.getElementById('tab-overview').parentElement.classList.remove('d-none');
     }
     if (document.getElementById('tab-dashboard')) {
         document.getElementById('tab-dashboard').parentElement.classList.remove('d-none');
-        document.getElementById('tab-dashboard').click();
+        document.getElementById('tab-dashboard').click(); // บังคับเด้งไปตารางของฉันก่อน
     }
     if (document.getElementById('tab-swap')) {
         document.getElementById('tab-swap').parentElement.classList.remove('d-none');
     }
     
-    // โหลดข้อมูล Dashboard
+    // โหลดข้อมูลเวรของตัวเอง
     initDatePicker();
     loadDashboard();
     
   } else {
-    // 🌟 กลุ่มอื่นๆ (Staff): โชว์หน้า Overview, ปิดหน้า Dashboard/แลกเวร
+    // 🌟 กลุ่มอื่นๆ (Staff): โชว์เฉพาะ Overview, ปิดหน้า Dashboard และ Swap
     if (document.getElementById('tab-overview')) {
         document.getElementById('tab-overview').parentElement.classList.remove('d-none');
-        document.getElementById('tab-overview').click();
+        document.getElementById('tab-overview').click(); // บังคับเด้งไปหน้าสรุปเวร
     }
     if (document.getElementById('tab-dashboard')) {
         document.getElementById('tab-dashboard').parentElement.classList.add('d-none');
@@ -133,18 +142,7 @@ function showAppMain() {
         document.getElementById('tab-swap').parentElement.classList.add('d-none');
     }
     
-    // 🌟 ตั้งค่า Default ให้ช่องค้นหาเป็น "วันที่ของวันนี้"
-    const today = new Date();
-    const offset = today.getTimezoneOffset();
-    const localDate = new Date(today.getTime() - (offset * 60 * 1000));
-    const todayStr = localDate.toISOString().split('T')[0]; 
-    
-    const overviewDateInput = document.getElementById('overviewDateInput');
-    if (overviewDateInput) {
-        overviewDateInput.value = todayStr;
-    }
-    
-    // สั่งให้กดปุ่มค้นหาวันนี้ในหน้า Overview อัตโนมัติ
+    // สั่งให้โหลดสรุปเวรของวันนี้อัตโนมัติ
     const btnOverview = document.getElementById('btnSearchOverview');
     if(btnOverview) btnOverview.click();
   }
@@ -177,7 +175,7 @@ function initDatePicker() {
 }
 
 // =====================================
-// 3. DASHBOARD LOGIC
+// 3. DASHBOARD LOGIC (อัปเดตให้แสดงเฉพาะเวรตั้งแต่วันนี้เป็นต้นไป)
 // =====================================
 function loadDashboard() {
   document.getElementById('currRotationContent').innerHTML = '<div class="spinner-border spinner-border-sm text-primary" role="status"></div> กำลังดึงข้อมูล...';
@@ -195,7 +193,7 @@ function loadDashboard() {
       if(res.status !== "success") throw new Error(res.message || "ดึงข้อมูลล้มเหลว");
       const data = res.data;
 
-      // วาดข้อมูล In-time Rotation
+      // 1. วาดข้อมูล In-time Rotation
       if (data.currentRotationInfo) {
         document.getElementById('currRotationContent').innerHTML = `
           <div class="d-flex align-items-center">
@@ -208,12 +206,26 @@ function loadDashboard() {
         `;
       }
 
-      // วาดข้อมูลเวร
-      if (!data.extraShifts || data.extraShifts.length === 0) {
-        document.getElementById('extraShiftsContent').innerHTML = `<div class="alert alert-light border text-center text-success mb-0">ไม่มีเวรนอกเวลาในระบบ <br><small class="text-muted">(ตรวจสอบชีต extra ว่ามีคำว่า "${data.currentRotationInfo.debugName}" หรือไม่)</small></div>`;
+      // ==========================================
+      // 🌟 2. ลอจิกกรองวันเวลา (แสดงเฉพาะวันนี้เป็นต้นไป)
+      // ==========================================
+      const today = new Date();
+      today.setHours(0, 0, 0, 0); // ตัดเรื่องเวลาทิ้ง ให้เทียบแค่วันที่
+
+      // กรองเอาเฉพาะเวรที่วันที่ >= วันนี้
+      const upcomingShifts = (data.extraShifts || []).filter(shift => {
+          // สร้างวันที่จากข้อมูล (เดือนใน JavaScript เริ่มนับจาก 0 จึงต้องเอา - 1)
+          const shiftDate = new Date(shift.year, shift.month - 1, shift.day);
+          return shiftDate >= today;
+      });
+
+      // 3. วาดข้อมูลเวรนอกเวลา (เปลี่ยนมาใช้ upcomingShifts แทน extraShifts)
+      if (upcomingShifts.length === 0) {
+        let debugName = data.currentRotationInfo ? data.currentRotationInfo.debugName : "";
+        document.getElementById('extraShiftsContent').innerHTML = `<div class="alert alert-light border text-center text-success mb-0">ไม่มีเวรนอกเวลาในระบบ <br><small class="text-muted">(ตรวจสอบชีต extra ว่ามีคำว่า "${debugName}" หรือไม่)</small></div>`;
       } else {
         let shiftHtml = '<div class="list-group">';
-        data.extraShifts.forEach(shift => {
+        upcomingShifts.forEach(shift => {
           let d = shift.day.toString().padStart(2, '0');
           let m = shift.month.toString().padStart(2, '0');
           let y = shift.year + 543; 
