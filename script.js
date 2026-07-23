@@ -1281,9 +1281,9 @@ function executeDirectorySearch(keyword) {
                 : `<div class="text-muted small mt-2">ไม่มีข้อมูลติดต่อ</div>`;
 
             // 🌟 3. สร้าง URL รูปภาพ (ดึงจาก Drive หรือใช้รูปโปรไฟล์จำลองถ้าไม่มี)
-            // หมายเหตุ: ตรวจสอบให้แน่ใจว่าตัวแปร user.imageid ตรงกับที่ส่งมาจาก Code.gs (บางทีอาจเป็น user.ImageID)
+            // 🌟 เปลี่ยนมาใช้ /thumbnail และกำหนดขนาด &sz=w200 (กว้าง 200px) เพื่อให้โหลดไว
             let photoUrl = user.imageid || user.ImageID
-                ? `https://drive.google.com/uc?export=view&id=${user.imageid || user.ImageID}` 
+                ? `https://drive.google.com/thumbnail?id=${user.imageid || user.ImageID}&sz=w200` 
                 : `https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png`;
 
             // 🌟 4. วาดโครงสร้าง HTML (เพิ่มแท็ก img ด้านซ้าย)
@@ -1293,7 +1293,8 @@ function executeDirectorySearch(keyword) {
                   
                   <!-- ส่วนรูปภาพ (ซ้าย) -->
                   <div class="me-3">
-                    <img src="${photoUrl}" class="rounded-circle border border-2 border-white shadow-sm" width="80" height="120" style="object-fit: cover;">
+                 // <img src="${photoUrl}" class="rounded-circle border border-2 border-white shadow-sm" width="80" height="120" style="object-fit: cover;">
+                    <img src="${photoUrl}" onerror="this.onerror=null; this.src='https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png';" class="rounded-circle border border-2 border-white shadow-sm" width="80" height="80" style="object-fit: cover;">
                   </div>
                   
                   <!-- ส่วนรายละเอียด (ขวา) -->
