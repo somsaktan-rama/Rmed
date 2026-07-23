@@ -56,16 +56,21 @@ document.getElementById('btnLogout').addEventListener('click', () => {
   });
 });
 
-function verifyRamaId(ramaId, showSuccessAlert) {
+// 🌟 เพิ่มพารามิเตอร์ userDevice เข้ามา (ตั้งค่าเริ่มต้นเป็นค่าว่างไว้เผื่อกรณีไม่ได้ส่งมา)
+function verifyRamaId(ramaId, showSuccessAlert, userDevice = "") {
   if (showSuccessAlert) Swal.fire({ title: 'กำลังตรวจสอบ...', didOpen: () => { Swal.showLoading() }});
 
+  // 🌟 นำ userDevice ต่อท้าย URL ไปหาฝั่งหลังบ้าน
+  const fetchUrl = `${SCRIPT_URL}?action=login&ramaId=${encodeURIComponent(ramaId)}&userAgent=${encodeURIComponent(userDevice)}`;
+
   // ใช้ fetch() แทน google.script.run
-  fetch(`${SCRIPT_URL}?action=login&ramaId=${ramaId}`, { 
-  method: 'GET',
-  redirect: 'follow' // เพิ่มบรรทัดนี้เพื่อสั่งให้เบราว์เซอร์วิ่งตามการ Redirect ของ Google
+  fetch(fetchUrl, { 
+    method: 'GET',
+    redirect: 'follow' // เพิ่มบรรทัดนี้เพื่อสั่งให้เบราว์เซอร์วิ่งตามการ Redirect ของ Google
   })
     .then(response => response.json())
     .then(res => {
+      // 💡 หมายเหตุ: ฝั่งหลังบ้านต้องส่ง status: "success" กลับมาให้ตรงเงื่อนไขด้วย
       if (res.status === "success" && res.data.success) {
         currentUser = res.data.user;
         localStorage.setItem('savedRamaId', currentUser.RamaID || currentUser.ramaid);
