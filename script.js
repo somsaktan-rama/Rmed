@@ -12,7 +12,11 @@ window.onload = function() {
 function checkLocalLogin() {
   const savedRamaId = localStorage.getItem('savedRamaId');
   if (savedRamaId) {
-    verifyRamaId(savedRamaId, false);
+    // 🌟 ดึงข้อมูลอุปกรณ์แบบเงียบๆ เมื่อผู้ใช้เปิดแอป (Auto Login)
+    const userDevice = navigator.userAgent;
+    
+    // ส่งข้อมูล userDevice พ่วงเข้าไปในฟังก์ชัน
+    verifyRamaId(savedRamaId, false, userDevice); 
   } else {
     document.getElementById('loginSection').classList.remove('d-none');
     document.getElementById('appSection').classList.add('d-none');
@@ -22,7 +26,12 @@ function checkLocalLogin() {
 document.getElementById('btnLogin').addEventListener('click', () => {
   const ramaId = document.getElementById('inputRamaId').value.trim();
   if (!ramaId) return Swal.fire('แจ้งเตือน', 'กรุณากรอก RamaID', 'warning');
-  verifyRamaId(ramaId, true);
+  
+  // 🌟 ดึงข้อมูลอุปกรณ์เมื่อผู้ใช้กดปุ่มเข้าสู่ระบบใหม่ (Manual Login)
+  const userDevice = navigator.userAgent;
+  
+  // ส่งข้อมูล userDevice พ่วงเข้าไปในฟังก์ชัน
+  verifyRamaId(ramaId, true, userDevice); 
 });
 
 document.getElementById('btnLogout').addEventListener('click', () => {
