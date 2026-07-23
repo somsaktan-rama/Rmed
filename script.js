@@ -12,10 +12,8 @@ window.onload = function() {
 function checkLocalLogin() {
   const savedRamaId = localStorage.getItem('savedRamaId');
   if (savedRamaId) {
-    // 🌟 ดึงข้อมูลอุปกรณ์แบบเงียบๆ เมื่อผู้ใช้เปิดแอป (Auto Login)
-    const userDevice = navigator.userAgent;
-    
-    // ส่งข้อมูล userDevice พ่วงเข้าไปในฟังก์ชัน
+    // 🌟 เปลี่ยนมาเรียกใช้ฟังก์ชันสกัดข้อมูลแทน
+    const userDevice = getParsedDeviceInfo();
     verifyRamaId(savedRamaId, false, userDevice); 
   } else {
     document.getElementById('loginSection').classList.remove('d-none');
@@ -27,10 +25,8 @@ document.getElementById('btnLogin').addEventListener('click', () => {
   const ramaId = document.getElementById('inputRamaId').value.trim();
   if (!ramaId) return Swal.fire('แจ้งเตือน', 'กรุณากรอก RamaID', 'warning');
   
-  // 🌟 ดึงข้อมูลอุปกรณ์เมื่อผู้ใช้กดปุ่มเข้าสู่ระบบใหม่ (Manual Login)
-  const userDevice = navigator.userAgent;
-  
-  // ส่งข้อมูล userDevice พ่วงเข้าไปในฟังก์ชัน
+  // 🌟 เปลี่ยนมาเรียกใช้ฟังก์ชันสกัดข้อมูลแทน
+  const userDevice = getParsedDeviceInfo();
   verifyRamaId(ramaId, true, userDevice); 
 });
 
@@ -1340,4 +1336,58 @@ document.addEventListener("DOMContentLoaded", function() {
     // ให้รอจนกว่าแอปจะโหลดเสร็จ
     setTimeout(loadDirectoryCodes, 2000); 
 });
+
+// ==========================================
+// ฟังก์ชันสกัดข้อมูลอุปกรณ์ (Device/OS Parser)
+// ==========================================
+function getParsedDeviceInfo() {
+    const ua = navigator.userAgent;
+    let os = "Unknown OS";
+    let browser = "Unknown Browser";
+    let deviceType = "Desktop";
+
+    // 1. แยกประเภทอุปกรณ์ (Device Type)
+    if (/Mobi|Android|iPhone/i.test(ua)) {
+        deviceType = "Mobile";
+    } else if (/iPad|Tablet/i.test(ua)) {
+        deviceType = "Tablet";
+    }
+
+    // 2. แยกระบบปฏิบัติการ (OS)
+    if (ua.includes("Windows NT 10.0")) {
+        // 🌟 ดักจับ Windows 11 ที่มักจะปลอมตัวเป็น Windows 10
+        os = "Windows 10/11";
+    } else if (ua.includes("Mac OS X")) {
+        if (ua.includes("iPhone OS")) {
+            // 🌟 ดึงเวอร์ชัน iOS (เช่น OS 18_7 จะถูกแปลงเป็น 18.7)
+            let match = ua.match(/OS (\d+_\d+)/);
+            let version = match ? match[1].replace("_", ".") : "";
+            os = "iOS " + version;
+        } else {
+            os = "macOS";
+        }
+    } else if (ua.includes("Android")) {
+        let match = ua.match(/Android (\d+(\.\d+)?)/);
+        os = "Android " + (match ? match[1] : "");
+    } else if (ua.includes("Linux")) {
+        os = "Linux";
+    }
+
+    // 3. แยกเบราว์เซอร์หรือแอป (Browser/App)
+    if (ua.includes("Line/")) {
+        browser = "LINE App"; // 🌟 สำคัญมาก เอาไว้เช็คว่าเปิดจากในไลน์หรือไม่
+    } else if (ua.includes("Firefox/")) {
+        browser = "Firefox";
+    } else if (ua.includes("Edg/")) {
+        browser = "Edge";
+    } else if (ua.includes("Chrome/")) {
+        browser = "Chrome";
+    } else if (ua.includes("Safari/") && !ua.includes("Chrome/") && !ua.includes("Edg/")) {
+        browser = "Safari";
+    }
+
+    // นำข้อมูลที่สกัดแล้ว มาประกอบร่างกับข้อความดิบ (Raw Data)
+    return `[${deviceType}] ${os} | ${browser} || Raw: ${ua}`;
+}
+
 
