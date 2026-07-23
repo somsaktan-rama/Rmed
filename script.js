@@ -1238,7 +1238,7 @@ document.getElementById('btnSearchDir').addEventListener('click', () => {
     }
 });
 
-// 4. ฟังก์ชันหลักสำหรับดึงและวาดข้อมูล (แยกออกมาเพื่อเรียกใช้ซ้ำได้)
+// 4. ฟังก์ชันหลักสำหรับดึงและวาดข้อมูล (เพิ่มการแสดงรูปภาพประจำตัว)
 function executeDirectorySearch(keyword) {
     Swal.fire({ title: 'กำลังค้นหาประวัติ...', allowOutsideClick: false, didOpen: () => { Swal.showLoading() }});
 
@@ -1266,12 +1266,12 @@ function executeDirectorySearch(keyword) {
             let codeBadge = user.code ? `<span class="badge bg-info text-dark ms-2"><i class="bi bi-tag-fill"></i> ${user.code}</span>` : "";
             let email = user.email ? `<span class="ms-3"><a href="mailto:${user.email}" class="text-decoration-none text-muted"><i class="bi bi-envelope-fill text-warning"></i> ${user.email}</a></span>` : "";
             
-            // 🌟 1. คลีนเบอร์โทรให้อยู่ในรูปแบบตัวเลขล้วน (สำหรับให้เครื่องอ่านตอนกดโทร tel:)
+            // 🌟 1. คลีนเบอร์โทรให้อยู่ในรูปแบบตัวเลขล้วน
             let cleanMobile = user.mobile ? user.mobile.toString().replace(/[^0-9+]/g, '') : "";
             let cleanPct = user.pct ? user.pct.toString().replace(/[^0-9]/g, '') : "";
             let cleanPct10 = user.pct10 ? user.pct10.toString().replace(/[^0-9+]/g, '') : "";
 
-            // 🌟 2. วาดปุ่ม (ใช้เบอร์ที่คลีนแล้วใส่ใน href แต่โชว์เบอร์เดิมที่อ่านง่ายบนปุ่ม)
+            // 🌟 2. วาดปุ่มโทรศัพท์
             let btnMobile = user.mobile ? `<a href="tel:${cleanMobile}" class="btn btn-sm btn-success rounded-pill px-3 shadow-sm me-1 mb-1 fw-bold"><i class="bi bi-telephone-fill"></i> Mobile: ${user.mobile}</a> ` : "";             
             let btnPct = user.pct ? `<a href="tel:022011000,${cleanPct}" class="btn btn-sm btn-primary rounded-pill px-3 shadow-sm me-1 mb-1 fw-bold"><i class="bi bi-telephone-outbound"></i> PCT: ${user.pct}</a> ` : "";             
             let btnPct10 = user.pct10 ? `<a href="tel:${cleanPct10}" class="btn btn-sm btn-danger rounded-pill px-3 shadow-sm me-1 mb-1 fw-bold"><i class="bi bi-phone-vibrate-fill"></i> PCT10: ${user.pct10}</a> ` : "";
@@ -1280,20 +1280,39 @@ function executeDirectorySearch(keyword) {
                 ? `<div class="mt-2">${btnMobile}${btnPct}${btnPct10}</div>` 
                 : `<div class="text-muted small mt-2">ไม่มีข้อมูลติดต่อ</div>`;
 
+            // 🌟 3. สร้าง URL รูปภาพ (ดึงจาก Drive หรือใช้รูปโปรไฟล์จำลองถ้าไม่มี)
+            // หมายเหตุ: ตรวจสอบให้แน่ใจว่าตัวแปร user.imageid ตรงกับที่ส่งมาจาก Code.gs (บางทีอาจเป็น user.ImageID)
+            let photoUrl = user.imageid || user.ImageID
+                ? `https://drive.google.com/uc?export=view&id=${user.imageid || user.ImageID}` 
+                : `https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png`;
+
+            // 🌟 4. วาดโครงสร้าง HTML (เพิ่มแท็ก img ด้านซ้าย)
             list.innerHTML += `
               <li class="list-group-item bg-light mb-2 rounded shadow-sm border-0">
-                <div class="d-flex justify-content-between align-items-center mb-1">
-                  <strong class="text-primary fs-5">${user.name}</strong>
-                  <div>
-                      <span class="badge bg-secondary">${role}</span>
-                      ${codeBadge}
+                <div class="d-flex align-items-center">
+                  
+                  <!-- ส่วนรูปภาพ (ซ้าย) -->
+                  <div class="me-3">
+                    <img src="${photoUrl}" class="rounded-circle border border-2 border-white shadow-sm" width="80" height="120" style="object-fit: cover;">
                   </div>
+                  
+                  <!-- ส่วนรายละเอียด (ขวา) -->
+                  <div class="flex-grow-1">
+                    <div class="d-flex justify-content-between align-items-center mb-1">
+                      <strong class="text-primary fs-5">${user.name}</strong>
+                      <div>
+                          <span class="badge bg-secondary">${role}</span>
+                          ${codeBadge}
+                      </div>
+                    </div>
+                    <div class="small text-muted mb-1">
+                      <i class="bi bi-building me-1 text-info"></i> สังกัด: ${user.department || "-"}
+                      ${email}
+                    </div>
+                    ${phoneSection}
+                  </div>
+                  
                 </div>
-                <div class="small text-muted mb-1">
-                  <i class="bi bi-building me-1 text-info"></i> สังกัด: ${user.department || "-"}
-                  ${email}
-                </div>
-                ${phoneSection}
               </li>
             `;
         });
