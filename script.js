@@ -1293,8 +1293,7 @@ function executeDirectorySearch(keyword) {
                   
                   <!-- ส่วนรูปภาพ (ซ้าย) -->
                   <div class="me-3">
-                 // <img src="${photoUrl}" class="rounded-circle border border-2 border-white shadow-sm" width="80" height="120" style="object-fit: cover;">
-                    <img src="${photoUrl}" onerror="this.onerror=null; this.src='https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png';" class="rounded-circle border border-2 border-white shadow-sm" width="80" height="80" style="object-fit: cover;">
+                      <img src="${photoUrl}" onerror="this.onerror=null; this.src='https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png';" class="rounded-3 border border-2 border-white shadow-sm" width="80" height="120" style="object-fit: cover;">
                   </div>
                   
                   <!-- ส่วนรายละเอียด (ขวา) -->
