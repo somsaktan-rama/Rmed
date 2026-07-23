@@ -1162,9 +1162,9 @@ document.getElementById('btnSearchDir').addEventListener('click', () => {
           let cleanPct10 = user.pct10 ? user.pct10.toString().replace(/[^0-9+]/g, '') : "";
 
           // 🌟 2. วาดปุ่ม (ใช้เบอร์ที่คลีนแล้วใส่ใน href แต่โชว์เบอร์เดิมที่อ่านง่ายบนปุ่ม)
-          let btnMobile = user.mobile ? `<a href="tel:${cleanMobile}" class="btn btn-sm btn-success rounded-pill px-3 shadow-sm me-1 mb-1 fw-bold"><i class="bi bi-telephone-fill"></i> Mobile: ${user.mobile}</a> ` : "";             
+          let btnMobile = user.mobile ? `<a href="tel:${cleanMobile}" class="btn btn-sm btn-success rounded-pill px-3 shadow-sm me-1 mb-1 fw-bold"><i class="bi bi-telephone-fill"></i> M: ${user.mobile}</a> ` : "";             
           let btnPct = user.pct ? `<a href="tel:022011000,${cleanPct}" class="btn btn-sm btn-primary rounded-pill px-3 shadow-sm me-1 mb-1 fw-bold"><i class="bi bi-telephone-outbound"></i> PCT: ${user.pct}</a> ` : "";             
-          let btnPct10 = user.pct10 ? `<a href="tel:${cleanPct10}" class="btn btn-sm btn-danger rounded-pill px-3 shadow-sm me-1 mb-1 fw-bold"><i class="bi bi-phone-vibrate-fill"></i> PCT10: ${user.pct10}</a> ` : "";
+          let btnPct10 = user.pct10 ? `<a href="tel:${cleanPct10}" class="btn btn-sm btn-danger rounded-pill px-3 shadow-sm me-1 mb-1 fw-bold"><i class="bi bi-phone-vibrate-fill"></i> PCT: ${user.pct10}</a> ` : "";
          
           let phoneSection = (btnMobile || btnPct || btnPct10) 
               ? `<div class="mt-2">${btnMobile}${btnPct}${btnPct10}</div>` 
@@ -1272,9 +1272,9 @@ function executeDirectorySearch(keyword) {
             let cleanPct10 = user.pct10 ? user.pct10.toString().replace(/[^0-9+]/g, '') : "";
 
             // 🌟 2. วาดปุ่มโทรศัพท์
-            let btnMobile = user.mobile ? `<a href="tel:${cleanMobile}" class="btn btn-sm btn-success rounded-pill px-3 shadow-sm me-1 mb-1 fw-bold"><i class="bi bi-telephone-fill"></i> Mobile: ${user.mobile}</a> ` : "";             
+            let btnMobile = user.mobile ? `<a href="tel:${cleanMobile}" class="btn btn-sm btn-success rounded-pill px-3 shadow-sm me-1 mb-1 fw-bold"><i class="bi bi-telephone-fill"></i> M: ${user.mobile}</a> ` : "";             
             let btnPct = user.pct ? `<a href="tel:022011000,${cleanPct}" class="btn btn-sm btn-primary rounded-pill px-3 shadow-sm me-1 mb-1 fw-bold"><i class="bi bi-telephone-outbound"></i> PCT: ${user.pct}</a> ` : "";             
-            let btnPct10 = user.pct10 ? `<a href="tel:${cleanPct10}" class="btn btn-sm btn-danger rounded-pill px-3 shadow-sm me-1 mb-1 fw-bold"><i class="bi bi-phone-vibrate-fill"></i> PCT10: ${user.pct10}</a> ` : "";
+            let btnPct10 = user.pct10 ? `<a href="tel:${cleanPct10}" class="btn btn-sm btn-danger rounded-pill px-3 shadow-sm me-1 mb-1 fw-bold"><i class="bi bi-phone-vibrate-fill"></i> PCT: ${user.pct10}</a> ` : "";
             
             let phoneSection = (btnMobile || btnPct || btnPct10) 
                 ? `<div class="mt-2">${btnMobile}${btnPct}${btnPct10}</div>` 
