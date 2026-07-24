@@ -125,6 +125,8 @@ function showAppMain() {
   // 🌟 อ้างอิงกล่องค้นหาบุคลากรในหน้า Overview
   const directoryContainer = document.getElementById('directoryContainer');
   
+  initDatePicker();
+  
   if (isResidentOrFellow) {
     // 🌟 กลุ่ม R และ F: 
     // 1. โชว์แท็บ Dashboard, Overview, และ Swap
@@ -145,7 +147,7 @@ function showAppMain() {
     }
     
     // โหลดข้อมูลเวรของตัวเอง
-    initDatePicker();
+    // initDatePicker();
     loadDashboard();
     
   } else {
